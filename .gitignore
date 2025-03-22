@@ -1,1 +1,4 @@
 .venv
+.DS_Store
+part1/.DS_Store
+part1/.ipynb_checkpoints/

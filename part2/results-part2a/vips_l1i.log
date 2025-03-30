@@ -8,9 +8,9 @@ orion_18000x18000.v
 [PARSEC] Running 'time /parsec/pkgs/apps/vips/inst/amd64-linux.gcc/bin/vips im_benchmark orion_18000x18000.v output.v':
 [PARSEC] [---------- Beginning of output ----------]
 
-real	1m25.518s
-user	1m25.545s
-sys	0m1.655s
+real	1m42.613s
+user	1m40.066s
+sys	0m1.478s
 [PARSEC] [----------    End of output    ----------]
 [PARSEC]
 [PARSEC] BIBLIOGRAPHY

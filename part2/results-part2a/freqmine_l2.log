@@ -31,11 +31,11 @@ transaction number is 990002
 578
 33
 1
-the data preparation cost 0.212464 seconds, the FPgrowth cost 4.782981 seconds
+the data preparation cost 0.239290 seconds, the FPgrowth cost 4.733852 seconds
 
-real	0m4.999s
-user	0m4.900s
-sys	0m0.094s
+real	0m4.976s
+user	0m4.448s
+sys	0m0.089s
 [PARSEC] [----------    End of output    ----------]
 [PARSEC]
 [PARSEC] BIBLIOGRAPHY

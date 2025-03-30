@@ -22,9 +22,9 @@ Just saw element: 400000
 netlist created. 400000 elements.
 Final routing is: 6.90232e+08
 
-real	0m8.117s
-user	0m7.997s
-sys	0m0.116s
+real	0m8.512s
+user	0m8.288s
+sys	0m0.149s
 [PARSEC] [----------    End of output    ----------]
 [PARSEC]
 [PARSEC] BIBLIOGRAPHY

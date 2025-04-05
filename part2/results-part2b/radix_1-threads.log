@@ -19,19 +19,19 @@ Integer Radix Sort
                  PROCESS STATISTICS
                Total            Rank            Sort
  Proc          Time             Time            Time
-    0        8687507          780782         7906716
+    0        8797257          789846         8007405
 
                  TIMING INFORMATION
-Start time                        : 1743682406701960
-Initialization finish time        : 1743682438375995
-Overall finish time               : 1743682447063502
-Total time with initialization    :         40361542
-Total time without initialization :          8687507
+Start time                        : 1743861055814099
+Initialization finish time        : 1743861087473107
+Overall finish time               : 1743861096270364
+Total time with initialization    :         40456265
+Total time without initialization :          8797257
 
 
-real	0m40.641s
-user	0m38.918s
-sys	0m1.721s
+real	0m40.743s
+user	0m38.980s
+sys	0m1.760s
 [PARSEC] [----------    End of output    ----------]
 [PARSEC]
 [PARSEC] BIBLIOGRAPHY

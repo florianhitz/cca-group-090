@@ -4,14 +4,14 @@ Launching splash2x.radix...
 [PARSEC] [========== Running benchmark splash2x.radix [1] ==========]
 [PARSEC] Setting up run directory.
 [PARSEC] No archive for input 'native' available, skipping input setup.
-[PARSEC] Running 'time /parsec/ext/splash2x/kernels/radix/inst/amd64-linux.gcc/bin/run.sh 1 native':
+[PARSEC] Running 'time /parsec/ext/splash2x/kernels/radix/inst/amd64-linux.gcc/bin/run.sh 8 native':
 [PARSEC] [---------- Beginning of output ----------]
 Generating input file ...
-Running /parsec/ext/splash2x/kernels/radix/inst/amd64-linux.gcc/bin/radix -p1 -r4096 -n268435456 -m2147483647:
+Running /parsec/ext/splash2x/kernels/radix/inst/amd64-linux.gcc/bin/radix -p8 -r4096 -n268435456 -m2147483647:
 
 Integer Radix Sort
      268435456 Keys
-     1 Processors
+     8 Processors
      Radix = 4096
      Max key = 2147483647
 
@@ -19,19 +19,19 @@ Integer Radix Sort
                  PROCESS STATISTICS
                Total            Rank            Sort
  Proc          Time             Time            Time
-    0        8616146          776729         7839410
+    0        2461454          169144         2253265
 
                  TIMING INFORMATION
-Start time                        : 1743682547517001
-Initialization finish time        : 1743682579143967
-Overall finish time               : 1743682587760113
-Total time with initialization    :         40243112
-Total time without initialization :          8616146
+Start time                        : 1743861144982596
+Initialization finish time        : 1743861149049591
+Overall finish time               : 1743861151511045
+Total time with initialization    :          6528449
+Total time without initialization :          2461454
 
 
-real	0m40.530s
-user	0m38.847s
-sys	0m1.681s
+real	0m6.813s
+user	0m49.446s
+sys	0m2.382s
 [PARSEC] [----------    End of output    ----------]
 [PARSEC]
 [PARSEC] BIBLIOGRAPHY

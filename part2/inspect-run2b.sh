@@ -1,7 +1,8 @@
 import os
 import re
+import numpy as np
 import pandas as pd
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 fps = os.listdir('results-part2b')
 
@@ -26,8 +27,28 @@ for fp in fps:
 for result in results:
     results[result] = sorted(results[result], key=lambda k: list(k.keys())[0])
     results[result] = [list(r.values())[0] for r in results[result]]
+    results[result] = results[result][0] / np.array(results[result])
 
 print(results)
+
+xticks = [1, 2, 3, 4]
+xtick_labels = ['1', '2', '4', '8']
+
+
+
+for benchmark, values in results.items():
+    plt.plot(xticks, values, marker='o', label=benchmark)
+
+plt.xlabel('# Threads')
+plt.ylabel('Speedup')
+plt.title('PARSEC Benchmark Execution Times Over 100 Runs')
+plt.xticks(xticks, labels=xtick_labels)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.savefig('plot-run2b.pdf')
+
+#print(results)
     
     
     

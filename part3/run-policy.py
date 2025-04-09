@@ -6,7 +6,7 @@ import time
 
 import yaml
 
-policy = sys.argv[1]
+POLICY = sys.argv[1]
 
 core_state = {
     "node-a-2core": [1, 1],
@@ -16,48 +16,127 @@ core_state = {
 }
 
 
-job_paths = os.listdir(f"{policy}/parsec-benchmarks")
+jobs = ["blackscholes", "canneal", "dedup", "ferret", "freqmine", "radix", "vips"]
+jobs = ["parsec-" + job for job in jobs]
+
+jobs = {key: {"name": key, "node": "", "cores": []} for key in jobs}
 
 
-def cores_avail(node, cores):
+def build_path(job):
+    return f"{POLICY}/parsec-benchmarks/{job}.yaml"
+
+
+def add_job_info(jobs):
+    for job in jobs.keys():
+        job_path = build_path(job)
+        with open(job_path, "rb") as f:
+            document = yaml.safe_load(f)
+            node = document["spec"]["template"]["spec"]["nodeSelector"][
+                "cca-project-nodetype"
+            ]
+            cmd = document["spec"]["template"]["spec"]["containers"][0]["args"][1]
+            match = re.match(r"taskset -c ([0-9,]+)", cmd)
+            cores = [int(c) for c in match.group(1).split(",")]
+
+            jobs[job]["node"] = node
+            jobs[job]["cores"] = cores
+
+
+def get_node(job):
+    return job["node"]
+
+
+def get_cores(job):
+    return job["cores"]
+
+
+def get_name(job):
+    return job["name"]
+
+
+def cores_avail(job):
+    node = get_node(job)
+    cores = get_cores(job)
     return all(core_state[node][i] for i in cores)
 
 
-def claim_cores(node, cores):
+def claim_cores(job):
+    name = get_name(job)
+    node = get_node(job)
+    cores = get_cores(job)
     for i in cores:
         core_state[node][i] = 0
 
-
-def allocate_job(job_path):
-    job_path_abs = f"{policy}/parsec-benchmarks/{job_path}"
-    with open(job_path_abs, "rb") as f:
-        document = yaml.safe_load(f)
-        node = document["spec"]["template"]["spec"]["nodeSelector"][
-            "cca-project-nodetype"
-        ]
-        cmd = document["spec"]["template"]["spec"]["containers"][0]["args"][1]
-        match = re.match(r"taskset -c ([0-9,]+)", cmd)
-        cores = [int(c) for c in match.group(1).split(",")]
-
-        if not cores_avail(node, cores):
-            print(
-                f"Not sufficent cores available on requested machine. {node}, {cores}"
-            )
-            return False
-
-        try:
-            subprocess.run(["kubectl", "create", "-f", job_path_abs], check=True)
-            claim_cores(node, cores)
-            return True
-        except subprocess.CalledProcessError as e:
-            subprocess.run(["kubectl", "delete", "jobs", "--all"], check=True)
-            print(e.stderr)
-            sys.exit(1)
+    print(f"Claimed cores {cores} on node {node} for job {name}")
 
 
-while len(job_paths) > 0:
+def free_cores(job):
+    name = get_name(job)
+    result = subprocess.run(
+        ["kubectl", "get", "job", name, "-o", "jsonpath={.status.succeeded}"],
+        text=True,
+        capture_output=True,
+    )
+
+    if result.returncode != 0:
+        print(f"Job {name} not found or not accessible.")
+
+    output = result.stdout.strip()
+    print("Output", output, "type", type(output), "name", name)
+    if output == "1":
+        node = get_node(job)
+        cores = get_cores(job)
+        for i in cores:
+            core_state[node][i] = 1
+        return True
+
+    return False
+    # print(f"Job {name} finished, freed cores {cores} on node {node}")
+
+
+def allocate_job(job):
+    name = get_name(job)
+    node = get_node(job)
+    cores = get_cores(job)
+
+    if not cores_avail(job):
+        # print(f"Not sufficent cores {cores} available on for job {name} on {node}")
+        return False
+    print(f"Allocate {name} on {node} on cores {cores}")
+
+    try:
+        job_path = build_path(name)
+        subprocess.run(["kubectl", "create", "-f", job_path], check=True)
+        claim_cores(job)
+        return True
+    except subprocess.CalledProcessError as e:
+        subprocess.run(["kubectl", "delete", "jobs", "--all"], check=True)
+        sys.exit(1)
+
+
+add_job_info(jobs)
+
+jobs_list = list(jobs.values())
+
+job_list_allocatee = []
+
+while len(jobs_list) > 0:
+    time.sleep(5)
     print(core_state)
-    time.sleep(1)
-    job = job_paths.pop()
-    if not allocate_job(job):
-        job_paths.append(job)
+    job = jobs_list.pop(0)
+
+    print("Processing", job)
+    if allocate_job(job):
+        job_list_allocatee.append(job)
+    else:
+        jobs_list.append(job)
+
+    index_remove = []
+    for i, job_allocated in enumerate(job_list_allocatee):
+        free = free_cores(job_allocated)
+        if free:
+            index_remove.append(i)
+
+    job_list_allocatee = [
+        job for i, job in enumerate(job_list_allocatee) if i not in index_remove
+    ]

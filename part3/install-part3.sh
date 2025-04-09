@@ -12,3 +12,6 @@ for vm in "${CLIENTS[@]}"; do
         make
     "
 done
+
+
+echo "Installations on 3 nodes completed."

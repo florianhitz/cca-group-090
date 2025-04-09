@@ -48,6 +48,6 @@ do
         fi
             
         
-        echo "$job $interference $normalized $color"
+        echo "$job, $interference, $normalized, $color"
     done
 done

@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: parsec-radix-d
+  labels:
+    name: parsec-radix-d
+spec:
+  template:
+    spec:
+      containers:
+        - image: anakli/cca:splash2x_radix
+          name: parsec-radix-d
+          imagePullPolicy: Always
+          command: ["/bin/sh"]
+          args:
+            [
+              "-c",
+              "taskset -c 0,1,2,3 ./run -a run -S splash2x -p radix -i native -n 4",
+            ]
+      restartPolicy: Never
+      nodeSelector:
+        cca-project-nodetype: "node-d-4core"

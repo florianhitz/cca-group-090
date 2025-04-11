@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: parsec-dedup-a
+  labels:
+    name: parsec-dedup-a
+spec:
+  template:
+    spec:
+      containers:
+        - image: anakli/cca:parsec_dedup
+          name: parsec-dedup-a
+          imagePullPolicy: Always
+          command: ["/bin/sh"]
+          args:
+            [
+              "-c",
+              "taskset -c 0,1 ./run -a run -S parsec -p dedup -i native -n 2",
+            ]
+      restartPolicy: Never
+      nodeSelector:
+        cca-project-nodetype: "node-a-2core"

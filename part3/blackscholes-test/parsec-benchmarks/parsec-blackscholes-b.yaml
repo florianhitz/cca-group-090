@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: parsec-blackscholes-b
+  labels:
+    name: parsec-blackscholes-b
+spec:
+  template:
+    spec:
+      containers:
+        - image: anakli/cca:parsec_blackscholes
+          name: parsec-blackscholes-b
+          imagePullPolicy: Always
+          command: ["/bin/sh"]
+          args:
+            [
+              "-c",
+              "taskset -c 0,1 ./run -a run -S parsec -p blackscholes -i native -n 2",
+            ]
+      restartPolicy: Never
+      nodeSelector:
+        cca-project-nodetype: "node-b-2core"

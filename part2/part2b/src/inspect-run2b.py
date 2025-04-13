@@ -40,6 +40,8 @@ xtick_labels = ['1', '2', '4', '8']
 
 for benchmark, values in results.items():
     plt.plot(xticks, values, marker='o', label=benchmark)
+ideal = [1, 2, 4, 8]
+plt.plot(xticks, ideal, linestyle='--', color='gray', alpha=0.5, linewidth=1, label='ideal')
 
 plt.xlabel('# Threads')
 plt.ylabel('Speedup')

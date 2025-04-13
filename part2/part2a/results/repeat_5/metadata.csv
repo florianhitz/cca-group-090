@@ -1,4 +1,4 @@
-program,interference,value,color
+program, interference, value, color
 blackscholes, cpu, 1.24655172413793103448, green
 blackscholes, l1d, 1.23620689655172413793, green
 blackscholes, l1i, 1.27241379310344827586, green

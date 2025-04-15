@@ -1,15 +1,15 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: parsec-radix-c
+  name: parsec-radix-c4
   labels:
-    name: parsec-radix-c
+    name: parsec-radix-c4
 spec:
   template:
     spec:
       containers:
         - image: anakli/cca:splash2x_radix
-          name: parsec-radix-c
+          name: parsec-radix-c4
           imagePullPolicy: Always
           command: ["/bin/sh"]
           args:

@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: parsec-ferret-d2
+  labels:
+    name: parsec-ferret-d2
+spec:
+  template:
+    spec:
+      containers:
+        - image: anakli/cca:parsec_ferret
+          name: parsec-ferret-d2
+          imagePullPolicy: Always
+          command: ["/bin/sh"]
+          args:
+            [
+              "-c",
+              "taskset -c 2,3 ./run -a run -S parsec -p ferret -i native -n 2",
+            ]
+      restartPolicy: Never
+      nodeSelector:
+        cca-project-nodetype: "node-d-4core"

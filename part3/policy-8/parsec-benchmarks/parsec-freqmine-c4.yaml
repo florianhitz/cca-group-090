@@ -1,22 +1,22 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: parsec-radix-d
+  name: parsec-freqmine-c4
   labels:
-    name: parsec-radix-d
+    name: parsec-freqmine-c4
 spec:
   template:
     spec:
       containers:
-        - image: anakli/cca:splash2x_radix
-          name: parsec-radix-d
+        - image: anakli/cca:parsec_freqmine
+          name: parsec-freqmine-c4
           imagePullPolicy: Always
           command: ["/bin/sh"]
           args:
             [
               "-c",
-              "taskset -c 0,1,2,3 ./run -a run -S splash2x -p radix -i native -n 4",
+              "taskset -c 0,1,2,3 ./run -a run -S parsec -p freqmine -i native -n 4",
             ]
       restartPolicy: Never
       nodeSelector:
-        cca-project-nodetype: "node-d-4core"
+        cca-project-nodetype: "node-c-4core"

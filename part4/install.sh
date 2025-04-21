@@ -1,15 +1,18 @@
 # install memcache and change config
 SERVER_NAME=$(kubectl get nodes --selector=cca-project-nodetype=memcached -o jsonpath='{.items[0].metadata.name}')
 SERVER_INT_IP=$(kubectl get nodes --selector=cca-project-nodetype=memcached -o jsonpath='{.items[0].status.addresses[0].address}')
+
 gcloud compute ssh \
     --ssh-key-file ~/.ssh/cloud-computing ubuntu@$SERVER_NAME \
     --zone europe-west1-b \
-    --command "sudo apt update && sudo apt install -y memcached libmemcached-tools && \
-               sudo sed -i 's/^-m .*/-m 1024/' /etc/memcached.conf && \
-               sudo sed -i 's/^-l .*/-l $SERVER_INT_IP/' /etc/memcached.conf && \
-               cat /etc/memcached.conf && \
-               sudo systemctl restart memcached && \
-               sudo systemctl status memcached"
+    --command "
+        sudo apt update && sudo apt install -y memcached libmemcached-tools && \
+        sudo sed -i 's/^-m .*/-m 1024/' /etc/memcached.conf && \
+        sudo sed -i 's/^-l .*/-l $SERVER_INT_IP/' /etc/memcached.conf && \
+        cat /etc/memcached.conf && \
+        sudo systemctl restart memcached && \
+        sudo systemctl status memcached
+    "
 
 
 
@@ -30,7 +33,8 @@ for NODE in "${NODES[@]}"; do
             sudo apt-get build-dep memcached --yes &&
             git clone https://github.com/eth-easl/memcache-perf-dynamic.git &&
             cd memcache-perf-dynamic &&
-            make"
+            make
+    "
 done
 
 

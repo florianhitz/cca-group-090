@@ -1,5 +1,5 @@
 if [[ $1 == "start" ]]; then
-    kubectl create -f memcache-t1-cpuset.yaml
+    kubectl create -f ../instruction-yaml/memcache-t1-cpuset.yaml
     kubectl expose pod some-memcached --name some-memcached-11211 \
     --type LoadBalancer --port 11211 \
     --protocol TCP
@@ -11,5 +11,3 @@ else
     kubectl delete pods --all
     kubectl delete service some-memcached-11211     
 fi
-    
-

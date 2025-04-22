@@ -1,3 +1,5 @@
+# This script is to ssh to mcperf client nodes, and then install
+# the augmented version of mcperf
 CLIENTS=($(kubectl get nodes -o name | grep "client-" | sed "s|node/||"))     
 echo ${CLIENTS[@]}
 
@@ -12,6 +14,5 @@ for vm in "${CLIENTS[@]}"; do
         make
     "
 done
-
 
 echo "Installations on 3 nodes completed."

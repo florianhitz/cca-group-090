@@ -12,6 +12,7 @@ spec:
       command: ["/bin/sh"]
       args: ["-c", "taskset -c 0 ./memcached -t 1 -u memcache"]
   nodeSelector:
+    # Please change this line to pin memcache to 1 of the 4 VMs
     cca-project-nodetype: "node-b-2core"
 
 

@@ -11,7 +11,7 @@ If you're using a different configuration, please update lines 2-3 of the setup 
 ```
 $ ./setup-part3.sh
 ```
-#### Optional: Fix Missing Node Labels
+#### (Optional) Fix Missing Node Labels
 In case that your nodes are not labelled, you can manually attach the labels using the helper script:
 ```
 $ ./label-nodes.sh
@@ -23,7 +23,7 @@ $ ./install-part3.sh
 ```
 ### Step 3: Launch the Memcached Service
 #### 3.1 - Specify the Target Node
-In ```instruction-yaml/memcache-t1-cpuset.yaml``` (line 16), set the target node where memcached should run. Make sure to choose one of the four heterogeneous VMs.
+In ```instruction-yaml/memcache-t1-cpuset.yaml``` (line 14 and 17), set the target node and CPU core where memcached should run. Make sure to choose from one of the four heterogeneous VMs. In our setting, we put it on client-agent-b core 0.
 #### 3.2 - Start Memcached
 Use the start flag to launch the memcached service. Omitting the flag will delete all previously deployed jobs, pods and services.
 ```
@@ -47,15 +47,37 @@ $ ./ssh-into.sh
 ```
 After Step 4, there should be four terminal windows open: one for the main console and three for the mcperf-related nodes.
 ### Step 5: Run a Scheduling Policy and Collect Results
+#### 5.1 Choose and Run a Scheduling Policy
 Choose one of the 8 available scheduling policies to run:
 ```
-$ python run-policy.py <1-8>
+$ python3 run-policy.py <1-8>
 ```
-In a separate terminal, monitor the pod statues and job completion (there should be 5 terminals now):
+This will submit a batch of jobs based on the selected policy.
+#### 5.2 Monitor Job Progress
+In a separate terminal (you should have 5 terminals open now), watch the pod statuses and job completions:
 ```
 $ kubectl get pods -o wide
 ```
+Wait untail all batch jobs have finished, i.e., all pods show STATUS=Completed.
+#### 5.3 Collect the Results
 Once all jobs are finished, save the full pod status output to a results file:
 ```
-$ kubectl get pods -o json > results.json
+$ kubectl get pods -o json > ../result/batch_result_<exp_idx>.json
+```
+#### 5.4 Extract Excution Time
+Parse the result file to extract the execution time for each job:
+```
+$ python3 get_time.py ../result/batch_result_<exp_idx>.json
+```
+#### 5.5 Record Latency results
+Don't forget to keep an eye on the 95th results from the client-measure.
+### Step 6: Delete Everything
+To delete all nodes and resources managed by Kops, use:
+```
+$ ./teardown.sh
+```
+#### (Optional) Clean Up Jobs, Services, and Pods
+If you’d like to manually remove all running jobs, services, and pods before tearing down the cluster, run the command before teardown first and then run teardown shown above:
+```
+$ ./run-memchached.sh
 ```

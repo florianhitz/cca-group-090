@@ -10,6 +10,7 @@ spec:
       name: memcached
       imagePullPolicy: Always
       command: ["/bin/sh"]
+      # Please change the flag if you wanna deploy memcached on another core
       args: ["-c", "taskset -c 0 ./memcached -t 1 -u memcache"]
   nodeSelector:
     # Please change this line to pin memcache to 1 of the 4 VMs

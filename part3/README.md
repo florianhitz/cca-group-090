@@ -11,6 +11,11 @@ If you're using a different configuration, please update lines 2-3 of the setup 
 ```
 $ ./setup-part3.sh
 ```
+#### Optional: Fix Missing Node Labels
+In case that your nodes are not labelled, you can manually attach the labels using the helper script:
+```
+$ ./label-nodes.sh
+```
 ### Step 2: Install Augmented mcperf on Client Node
 SSH into the mcperf client nodes and install the augmented version of the mcperf on each client.
 ```

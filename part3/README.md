@@ -64,13 +64,8 @@ Once all jobs are finished, save the full pod status output to a results file:
 ```
 $ kubectl get pods -o json > ../result/batch_result_<exp_idx>.json
 ```
-#### 5.4 Extract Excution Time
-Parse the result file to extract the execution time for each job:
-```
-$ python3 get_time.py ../result/batch_result_<exp_idx>.json
-```
-#### 5.5 Record Latency results
-Don't forget to keep an eye on the 95th results from the client-measure.
+#### 5.4 Record Latency results
+Don't forget to keep an eye on the 95th results from the client-measure. Log it and name it ```memcache_<1-3>.csv```
 ### Step 6: Delete Everything
 To delete all nodes and resources managed by Kops, use:
 ```
@@ -81,3 +76,9 @@ If you’d like to manually remove all running jobs, services, and pods before t
 ```
 $ ./run-memchached.sh
 ```
+### Step 7: Visualize Results
+I’ve integrated the instructions from ```python3 get_time.py results.json``` directly into a new script. Now, you can simply run:
+```
+$ python3 analyze_result.py
+```
+This script processes the results and automatically generates the required figure, following the formatting specified in the report guidelines.

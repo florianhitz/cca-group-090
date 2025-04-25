@@ -58,7 +58,7 @@ In a separate terminal (you should have 5 terminals open now), watch the pod sta
 ```
 $ kubectl get pods -o wide
 ```
-Wait untail all batch jobs have finished, i.e., all pods show STATUS=Completed.
+Wait until all batch jobs have finished, i.e., all pods running a batch job show STATUS=Completed.
 #### 5.3 Collect the Results
 Once all jobs are finished, save the full pod status output to a results file:
 ```
@@ -77,7 +77,11 @@ If you’d like to manually remove all running jobs, services, and pods before t
 $ ./run-memchached.sh
 ```
 ### Step 7: Visualize Results
-I’ve integrated the instructions from ```python3 get_time.py results.json``` directly into a new script. Now, you can simply run:
+I’ve integrated the instructions from ```python3 get_time.py results.json``` directly into a new script. Install the required dependencies using:
+```
+$ pip install -r requirements.txt
+```
+Then, you can simply run: 
 ```
 $ python3 analyze_result.py
 ```

@@ -35,11 +35,18 @@ def parse_batch_timings(json_path):
             end_time = datetime.strptime(
                 item['status']['containerStatuses'][0]['state']['terminated']['finishedAt'],
                 time_format)
+            node_full = item['spec'].get('nodeName', 'unknown-node')
+            node_parts = node_full.split('-')
+            if len(node_parts) >= 2:
+                node_name = f"{node_parts[0]}-{node_parts[1]}"
+            else:
+                node_name = node_full
             job_timings.append({
                 'job_name': name,
                 'start_time': start_time,
                 'completion_time': end_time,
-                'job_time': end_time - start_time
+                'job_time': end_time - start_time,
+                'node_name': node_name
             })
             start_times.append(start_time)
             completion_times.append(end_time)

@@ -56,13 +56,13 @@ def memcache_file_to_df(memcache_file):
 def plot_bar_p95_latency_over_time(df, jobs_times, exp_idx):
 
     job_label_y = {
-        "blackscholes": 0.45,
-        "canneal": 0.35,
-        "dedup": 0.25,
-        "ferret": 0.40,
-        "freqmine": 0.30,
-        "radix": 0.39,
-        "vips": 0.42
+        "blackscholes": 0.1,
+        "canneal": 0.16,
+        "dedup": 0.22,
+        "ferret": 0.28,
+        "freqmine": 0.34,
+        "radix": 0.40,
+        "vips": 0.46
     }
 
     job_colors = {
@@ -92,9 +92,9 @@ def plot_bar_p95_latency_over_time(df, jobs_times, exp_idx):
         custom_data=["ts_start", "ts_end", "duration"],
         labels = {
             "start_offset_sec": "Time since first container start (s)",
-            "p95_ms": "p95 Latency (ms)"
+            "p95_ms": "P95 Latency (ms)"
         },
-        title = f"Memcached p95 Latency Over Time (Experiment {exp_idx})",
+        title = f"Memcached P95 Latency Over Time (Experiment {exp_idx})",
     )
 
     # Add bar width and hoverover info
@@ -110,26 +110,60 @@ def plot_bar_p95_latency_over_time(df, jobs_times, exp_idx):
 
     for job in jobs_times:
         job_name = job["job_name"].split("-")[1]
-        x_offset = (job["start_time"] - start_ref).total_seconds()
+        machine_name = job.get("node_name", "machineX")
+        x_start = (job["start_time"] - start_ref).total_seconds()
+        x_end = (job["completion_time"] - start_ref).total_seconds()
         y_pos = job_label_y.get(job_name, df["p95_ms"].max() * 1.05)
 
+        # For start of job batch
         fig.add_shape(
             type="line",
-            x0=x_offset,
-            x1=x_offset,
+            x0=x_start,
+            x1=x_start,
             y0=0,
             y1=y_pos,
-            line=dict(color="black", width=1.2, dash="dot"),
+            line=dict(color=job_colors.get(job_name, "rgba(255, 255, 255, 1)"), width=2.5, dash="dot"),
             layer="above"
         )
 
         fig.add_annotation(
-            x=x_offset,
+            x=x_start,
             y=y_pos,
-            text=f"<b>{job_name}</b>",
+            text=f"<b>{job_name}</b><br>start: {x_start:.1f}<br>{machine_name}",
             showarrow=False,
-            font=dict(size=10, color="black"),
-            bgcolor=job_colors.get(job_name, "rgba(255, 255, 255, 0.8)")
+            font=dict(size=8, color="black"),
+            bgcolor=job_colors.get(job_name, "rgba(255, 255, 255, 1)")
+        )
+
+        # For end of job batch
+        fig.add_shape(
+            type="line",
+            x0=x_end,
+            x1=x_end,
+            y0=0,
+            y1=y_pos,
+            line=dict(color=job_colors.get(job_name, "rgba(255, 255, 255, 1)"), width=2.5, dash="dot"),
+            layer="above"
+        )
+
+        fig.add_annotation(
+            x=x_end,
+            y=y_pos,
+            text=f"<b>{job_name}</b><br>end: {x_end:.1f}<br>{machine_name}",
+            showarrow=False,
+            font=dict(size=8, color="black"),
+            bgcolor=job_colors.get(job_name, "rgba(255, 255, 255, 1)")
+        )
+
+        # Horizontal line connecting start and end
+        fig.add_shape(
+            type="line",
+            x0=x_start,
+            y0=y_pos,
+            x1=x_end,
+            y1=y_pos,
+            line=dict(color=job_colors.get(job_name, "rgba(255, 255, 255, 1)"), width=2.5, dash="dot"),
+            layer="above"
         )
 
     fig.update_layout(

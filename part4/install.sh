@@ -4,6 +4,7 @@
 SERVER_NAME=$(kubectl get nodes --selector=cca-project-nodetype=memcached -o jsonpath='{.items[0].metadata.name}')
 SERVER_INT_IP=$(kubectl get nodes --selector=cca-project-nodetype=memcached -o jsonpath='{.items[0].status.addresses[0].address}')
 
+# install memcached
 gcloud compute ssh \
     --ssh-key-file ~/.ssh/cloud-computing ubuntu@$SERVER_NAME \
     --zone europe-west1-b \
@@ -27,6 +28,44 @@ gcloud compute ssh \
         sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 "
 
+# install docker
+gcloud compute ssh \
+    --ssh-key-file ~/.ssh/cloud-computing ubuntu@$SERVER_NAME \
+    --zone europe-west1-b \
+    --command "
+        for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove -y \$pkg; done
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates curl
+        sudo install -m 0755 -d /etc/apt/keyrings
+        sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+        sudo chmod a+r /etc/apt/keyrings/docker.asc
+        echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \$(. /etc/os-release && echo \${UBUNTU_CODENAME:-\$VERSION_CODENAME}) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        sudo apt-get update
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    "
+
+# install py stuff
+gcloud compute ssh \
+    --ssh-key-file ~/.ssh/cloud-computing ubuntu@$SERVER_NAME \
+    --zone europe-west1-b \
+    --command "
+        sudo apt install python3-pip
+        sudo apt install python3.12-venv
+    "
+
+# prefetch docker images
+#gcloud compute ssh \
+#    --ssh-key-file ~/.ssh/cloud-computing ubuntu@$SERVER_NAME \
+#    --zone europe-west1-b \
+#    --command "
+#        docker pull anakli/cca:parsec_blackscholes
+#        docker pull anakli/cca:parsec_canneal
+#        docker pull anakli/cca:parsec_dedup
+#        docker pull anakli/cca:parsec_ferret
+#        docker pull anakli/cca:parsec_freqmine
+#        docker pull anakli/cca:splash2x_radix
+#        docker pull anakli/cca:parsec_vips
+#"
 
 
 # install the augmented version of mcperf

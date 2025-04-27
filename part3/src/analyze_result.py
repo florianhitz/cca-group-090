@@ -2,7 +2,6 @@ import os
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
-from collections import defaultdict
 from get_time import *
 
 # Global variable
@@ -56,13 +55,13 @@ def memcache_file_to_df(memcache_file):
 def plot_bar_p95_latency_over_time(df, jobs_times, exp_idx):
 
     job_label_y = {
-        "blackscholes": 0.1,
-        "canneal": 0.16,
-        "dedup": 0.22,
-        "ferret": 0.28,
-        "freqmine": 0.34,
-        "radix": 0.40,
-        "vips": 0.46
+        "blackscholes": 0.05,
+        "canneal": 0.1,
+        "dedup": 0.15,
+        "ferret": 0.2,
+        "freqmine": 0.25,
+        "radix": 0.3,
+        "vips": 0.35
     }
 
     job_colors = {
@@ -80,6 +79,19 @@ def plot_bar_p95_latency_over_time(df, jobs_times, exp_idx):
 
     # How the following start time different from the first one
     df["start_offset_sec"] = (df["ts_start"] - start_ref).dt.total_seconds()
+
+    # Find the latest completion time among all jobs
+    last_job_end_time = max(job["completion_time"] for job in jobs_times)
+
+    # Filter df to keep only data up to a bit after the last job ends
+    buffer_seconds = 10
+    end_cutoff = last_job_end_time + pd.to_timedelta(buffer_seconds, unit="s")
+    df = df[df["ts_start"] <= end_cutoff].reset_index(drop=True)
+
+    # Continue with rest of your processing
+    df["duration"] = (df["ts_end"] - df["ts_start"]).dt.total_seconds()
+    df["p95_ms"] = df["p95"]/1000
+
     # Define the width of each bar
     df["duration"] = (df["ts_end"] - df["ts_start"]).dt.total_seconds()
     df["p95_ms"] = df["p95"]/1000
@@ -100,7 +112,7 @@ def plot_bar_p95_latency_over_time(df, jobs_times, exp_idx):
     # Add bar width and hoverover info
     fig.update_traces(
         width = df["duration"],
-        marker_color = "LightSkyBlue",
+        marker_color="#d3d3d3",
         hovertemplate = 
             "ts_start: %{customdata[0]|%Y-%m-%d %H:%M:%S}<br>" \
             "ts_end: %{customdata[1]|%Y-%m-%d %H:%M:%S}<br>" \
@@ -129,7 +141,7 @@ def plot_bar_p95_latency_over_time(df, jobs_times, exp_idx):
         fig.add_annotation(
             x=x_start,
             y=y_pos,
-            text=f"<b>{job_name}</b><br>start: {x_start:.1f}<br>{machine_name}",
+            text=f"<b>{job_name}</b> ({machine_name})<br>start: {x_start:.0f}",
             showarrow=False,
             font=dict(size=8, color="black"),
             bgcolor=job_colors.get(job_name, "rgba(255, 255, 255, 1)")
@@ -149,7 +161,7 @@ def plot_bar_p95_latency_over_time(df, jobs_times, exp_idx):
         fig.add_annotation(
             x=x_end,
             y=y_pos,
-            text=f"<b>{job_name}</b><br>end: {x_end:.1f}<br>{machine_name}",
+            text=f"<b>{job_name}</b> ({machine_name})<br>end: {x_end:.0f}",
             showarrow=False,
             font=dict(size=8, color="black"),
             bgcolor=job_colors.get(job_name, "rgba(255, 255, 255, 1)")
@@ -167,14 +179,24 @@ def plot_bar_p95_latency_over_time(df, jobs_times, exp_idx):
         )
 
     fig.update_layout(
+        plot_bgcolor="white",
+        # paper_bgcolor="white",
         bargap=0.1,
         width = 1000,
         height = 500,
         xaxis=dict(
             title="Time Since the First Job Starts (s)", 
-            tickformat=".1f"
+            tickformat=".1f",
+            showline=True,
+            linecolor='black'
         ),
-        yaxis=dict(title="P95 Latency (ms)", range=[0, df["p95_ms"].max() * 1.5])
+        yaxis=dict(
+            title="P95 Latency (ms)", 
+            range=[0, df["p95_ms"].max() * 1.5],
+            showline=True,
+            linecolor='black',
+            gridcolor="#EEEEEE"
+        )
     )
 
     # fig.show()

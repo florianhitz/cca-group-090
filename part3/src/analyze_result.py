@@ -174,14 +174,14 @@ def plot_bar_p95_latency_over_time(df, jobs_times, exp_idx):
             title="Time Since the First Job Starts (s)", 
             tickformat=".1f"
         ),
-        yaxis=dict(title="p95 Latency (ms)", range=[0, df["p95_ms"].max() * 1.5])
+        yaxis=dict(title="P95 Latency (ms)", range=[0, df["p95_ms"].max() * 1.5])
     )
 
     # fig.show()
     fig_dir = "../result/fig/"
     os.makedirs(fig_dir, exist_ok=True)
 
-    fig.write_image(os.path.join(fig_dir, f"experiment_{exp_idx}_p95_latency_plot.png"), engine="kaleido")
+    fig.write_image(os.path.join(fig_dir, f"experiment_{exp_idx}_p95_latency_plot.png"), scale=3, engine="kaleido")
     fig.write_html(os.path.join(fig_dir, f"experiment_{exp_idx}_p95_latency_plot.html"))
 
 

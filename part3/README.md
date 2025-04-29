@@ -1,13 +1,66 @@
 # User Instruction for Part 3
 
 ## Part 3 Folder Structure
+All operational code is located in the ```src``` directory.\
+The results generated from experiments are organized under the ```result``` directory.\
+All tested scheduling policies are available in the ```policy``` directory.\
+The original instruction files from the project repository are preserved in the ```instruction-yaml``` directory.
+```
+.
+├── README.md
+├── batch-workloads (internal benchmark to see each single job's performance)
+│   ├── blackscholes-test
+│   ├── canneal-test
+│   ├── dedup-test
+│   ├── ferret-test
+│   ├── freqmine-test
+│   ├── radix-test
+│   └── vips-test
+├── instruction-yaml
+│   ├── memcache-t1-cpuset.yaml
+│   └── part3.yaml
+├── policy
+│   ├── policy-1
+│   ├── policy-2
+│   ├── policy-3
+│   ├── policy-4
+│   ├── policy-5
+│   ├── policy-6
+│   ├── policy-7 (second-best policy)
+│   └── policy-8 (best policy)
+├── result
+│   ├── batch_result_1.json
+│   ├── batch_result_2.json
+│   ├── batch_result_3.json
+│   ├── fig
+│   │   ├── experiment_1_p95_latency_plot.html
+│   │   ├── experiment_1_p95_latency_plot.png
+│   │   ├── experiment_2_p95_latency_plot.html
+│   │   ├── experiment_2_p95_latency_plot.png
+│   │   ├── experiment_3_p95_latency_plot.html
+│   │   └── experiment_3_p95_latency_plot.png
+│   ├── memcache_1.csv
+│   ├── memcache_2.csv
+│   └── memcache_3.csv
+└── src
+    ├── analyze_result.py
+    ├── get_time.py
+    ├── install-part3.sh
+    ├── label-nodes.sh
+    ├── requirements.txt
+    ├── run-memchached.sh
+    ├── run-policy.py
+    ├── setup-part3.sh
+    ├── ssh-into.sh
+    └── teardown.sh
+```
 
 ## Usage Specification
 Please make sure that you are under the current working directory: ```/part3/src/```
 ### Step 1: Set Up Kubernetes Cluster
 This step sets up a Kubernetes cluster with 1 master and 7 worker nodes.
 To run the script as-is, you must have a valid ETH ID associated with Group 090.
-If you're using a different configuration, please update lines 2-3 of the setup script to mathc your project setting.
+If you're using a different configuration, please update lines 2-3 of the setup script to match your project setting. Also, don't forget to modify two required lines in your ```part3.yaml```!
 ```
 $ ./setup-part3.sh
 ```

@@ -24,14 +24,16 @@ images_to_pull = {
     'vips': 'anakli/cca:parsec_vips',
 }
 
+# for minimum thread number see
+# https://users.soe.ucsc.edu/~renau/docs/wddd15.pdf
 image_commands = {
-    'blackscholes': './run -a run -S parsec -p blackscholes -i native -n 4',
+    'blackscholes': './run -a run -S parsec -p blackscholes -i native -n 2',
     'canneal': './run -a run -S parsec -p canneal -i native -n 4',
     'dedup': './run -a run -S parsec -p dedup -i native -n 4',
     'ferret': './run -a run -S parsec -p ferret -i native -n 4',
     'freqmine': './run -a run -S parsec -p freqmine -i native -n 4',
     'radix': './run -a run -S splash2x -p radix -i native -n 4',
-    'vips': './run -a run -S parsec -p vips -i native -n 4',
+    'vips': './run -a run -S parsec -p vips -i native -n 2',
 }
 
 for image in images_to_pull.values():
@@ -67,8 +69,10 @@ def adjust_memcached_cores(pid, cores=1):
      
 
 
-queue_shared_cores = ['blackscholes', 'radix']
-queue = ['dedup', 'ferret', 'freqmine', 'vips', 'canneal']
+#queue_shared_cores = ['blackscholes', 'radix']
+queue_shared_cores = []
+#queue = ['dedup', 'ferret', 'freqmine', 'vips', 'canneal']
+queue = ['dedup', 'ferret', 'freqmine', 'vips', 'canneal', 'radix', 'blackscholes']
 
 containers_1_ready = []
 containers_1_done = []
@@ -93,7 +97,7 @@ pid = subprocess.check_output(['pgrep', 'memcached']).decode().strip()
 
 start = time.time()
 while True:
-    if len(containers_1_done) == 2 and len(containers_23_done) == 5:
+    if len(containers_1_done) == 0 and len(containers_23_done) == 7:
         break
 
     time.sleep(1)
@@ -105,12 +109,17 @@ while True:
         container_1_running.reload()
         print(container_1_running.status)
 
+    # core 1 logic
+    # memcache core allocation is done here
     if usage >= USAGE_THRESHOLD:
         if adjust_memcached_cores(pid, 2) and container_1_running and container_1_running.status == 'running':
-            container_1_running.pause()
+            # container_1_running.pause()
+            container_1_running.update(cpuset_cpus='1', cpu_period=100_000, cpu_quota=25_000)
     else:
-        if adjust_memcached_cores(pid, 1) and container_1_running and container_1_running.status == 'paused':
-            container_1_running.unpause()
+        if adjust_memcached_cores(pid, 1) and container_1_running and container_1_running.status == 'running':
+        # if adjust_memcached_cores(pid, 1) and container_1_running and container_1_running.status == 'paused':
+            container_1_running.update(cpuset_cpus='1', cpu_period=100_000, cpu_quota=100_000)
+            # container_1_running.unpause()
 
 
     if container_1_running and container_1_running.status == 'exited':
@@ -122,9 +131,25 @@ while True:
         container_1_running.start()
 
     
-    # core 2, 3 logic
+    # core 2,3 logic
     if container_23_running:
         container_23_running.reload()
+
+    # when container_1 finished allow to use max resources available
+    if len(containers_1_done) == 0 and container_23_running and container_23_running.status == 'running':
+        if usage <= 30:
+            print(f'usage: {usage}, setting new quota 350')
+            container_23_running.update(cpuset_cpus='0,1,2,3', cpu_period=100_000, cpu_quota=350_000)
+        elif usage <= USAGE_THRESHOLD:
+            print(f'usage: {usage}, setting new quota 325')
+            container_23_running.update(cpuset_cpus='0,1,2,3', cpu_period=100_000, cpu_quota=325_000)
+        elif usage <= 100:
+            print(f'usage: {usage}, setting new quota 300')
+            container_23_running.update(cpuset_cpus='1,2,3', cpu_period=100_000, cpu_quota=300_000)
+        else:
+            print(f'usage: {usage}, setting new quota 200')
+            container_23_running.update(cpuset_cpus='2,3', cpu_period=100_000, cpu_quota=200_000)
+    
 
     if container_23_running and container_23_running.status == 'exited':
         containers_23_done += [container_23_running]
@@ -139,27 +164,4 @@ end = time.time()
 duration = end - start
 
 print(f'Took {duration:.2f} seconds')
-     
-        
-        
-    
-    
-    
-    
-    
 
-
-#print(containers_23)
-# watch_cpu(pid)
-
-# def cli():
-#     while True:
-#         cmd = input('>> ')
-#         if cmd == 'run':
-#             image = images_to_pull[0]
-#             client.containers.run(image, cpuset_cpus='0', detach=True, remove=False, name='parsec', command='./run -a run -S parsec -p blackscholes -i native -n 2')
-#         print(cmd)
-# 
-# cli()
-    
-    

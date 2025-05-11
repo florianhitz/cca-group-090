@@ -68,12 +68,12 @@ python3 plot-results_4-1-a.py
 ```
 The file is called `plot-results_4-1-a.py` because it corresponds to part 4.1.a in the report.
 
-## 4.1.d Plot the p95 Latency and CPU utilization for --scan 5000:220000:5000 with 1 and 2 threads comparison
+## 4.1.d Plot the p95 Latency and CPU Utilization for --scan 5000:220000:5000 with 1 vs 2 Core Comparison
 Collect the memcached results and save as .txt files in the ```log/4-1-d``` directory, using the naming scheme ```t2c<1/2>-run<1/2/3>.txt```
 Collect the CPU usage results and save them in the same ```log/4-1-d``` directory with the naming scheme ```cpu<1/2>-run<1/2/3>.txt```
 To visualize the relationship between the achieved QPS, p95 tail latency and CPU utilization under 1-core vs. 2-core settings, run:
 ```
-python3 plot-results_4-1-d.py
+python3 plot-results_4-1-d.py <1/2>
 ```
 The file is named `plot-results_4-1-d.py` to correspond with part 4.1.d in the report.
 

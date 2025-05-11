@@ -4,9 +4,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def get_df(config):
-    df1 = pd.read_csv(f'../log/4-1-a/{config}-run1.txt', delim_whitespace=True)
-    df2 = pd.read_csv(f'../log/4-1-a/{config}-run2.txt', delim_whitespace=True)
-    df3 = pd.read_csv(f'../log/4-1-a/{config}-run3.txt', delim_whitespace=True)
+    df1 = pd.read_csv(f'../result/log/4-1-a/{config}-run1.txt', delim_whitespace=True)
+    df2 = pd.read_csv(f'../result/log/4-1-a/{config}-run2.txt', delim_whitespace=True)
+    df3 = pd.read_csv(f'../result/log/4-1-a/{config}-run3.txt', delim_whitespace=True)
 
     df = pd.DataFrame({
         'QPS': df1['QPS'],
@@ -39,6 +39,6 @@ plt.ylabel('95th percentile Latency [ms]')
 
 plt.legend()
 plt.title('memcached Performance varying Threads(T) and Cores(C)')
-plt.savefig('../fig/part4_1_a.png')
+plt.savefig('../result/fig/part4_1_a.png')
 # plt.show()
 

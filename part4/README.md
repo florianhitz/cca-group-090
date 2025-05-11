@@ -55,27 +55,24 @@ At this point, there should be four terminals open:
  - the client-measure VM
  - the client-agent VM
  - the memcache-server VM
-After each measurement, please copy the result output from client-measure VM terminal and save it under the ```results``` folder using the following naming scheme:
-```
-t<num_of_threads>_c<num_of_cores>-run<run_index>.txt
-```
+After each measurement, please copy the result output from client-measure VM terminal and save it under the corresponding directories specified in the following steps based on your needs.
 
 ### Step 4.1.a Plot the p95 Latency for --scan 5000:220000:5000
-After Step 3, you should have collected p95 lantecy results under different numbers of threads/CPU cores. Since the test under each condition is required to be simulated at least three times, there should be at least 12 files saved in the ```log/4-1-a``` folder.
+After Step 3, you should have collected p95 lantecy results under different numbers of threads/CPU cores. Since the test under each condition is required to be simulated at least three times, there should be at least 12 files saved in the ```part4/result/log/4-1-a``` folder.
 To visualize the relationship between p95 tail latency and QPS under various configurations, run:
 ```
 python3 plot-results_4-1-a.py
 ```
-The file is called `plot-results_4-1-a.py` because it corresponds to part 4.1.a in the report.
+The file is called `plot-results_4-1-a.py` because it corresponds to part 4.1.a in the report. The visualization script will output some warnings in the terminal as a function is deprecated but it won't affect the successful generation of a plot.
 
-## 4.1.d Plot the p95 Latency and CPU Utilization for --scan 5000:220000:5000 with 1 vs 2 Core Comparison
-Collect the memcached results and save as .txt files in the ```log/4-1-d``` directory, using the naming scheme ```t2c<1/2>-run<1/2/3>.txt```
+### Step 4.1.d Plot the p95 Latency and CPU Utilization for --scan 5000:220000:5000 with 1 vs 2 Core Comparison
+Collect the memcached results and save as .txt files in the ```part4/result/log/4-1-d``` directory, using the naming scheme ```t2c<1/2>-run<1/2/3>.txt```
 Collect the CPU usage results and save them in the same ```log/4-1-d``` directory with the naming scheme ```cpu<1/2>-run<1/2/3>.txt```
 To visualize the relationship between the achieved QPS, p95 tail latency and CPU utilization under 1-core vs. 2-core settings, run:
 ```
 python3 plot-results_4-1-d.py <1/2>
 ```
-The file is named `plot-results_4-1-d.py` to correspond with part 4.1.d in the report.
+The file is named `plot-results_4-1-d.py` to correspond with part 4.1.d in the report. Again, the visualization script will output some warnings in the terminal as a function is deprecated but it won't affect the successful generation of a plot.
 
 To adjust the number of threads follow the project description.
 To adjust the number of CPU cores, run the following in the memcached server terminal:

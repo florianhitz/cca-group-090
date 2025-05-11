@@ -5,10 +5,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def process_data(cores=1, run=1):
-    df1 = pd.read_csv(f'../log/4-1-d/t2c{cores}-run{run}.txt', delim_whitespace=True)
+    df1 = pd.read_csv(f'../result/log/4-1-d/t2c{cores}-run{run}.txt', delim_whitespace=True)
     df1['ts_start'] = pd.to_datetime(df1['ts_start'], unit='ms').dt.round('1s').dt.time
     
-    df2 = pd.read_csv(f'../log/4-1-d/cpu{cores}-run{run}.txt', delim_whitespace=True, skiprows=2, skipfooter=2)
+    df2 = pd.read_csv(f'../result/log/4-1-d/cpu{cores}-run{run}.txt', delim_whitespace=True, skiprows=2, skipfooter=2)
     df2 = df2.rename(columns={df2.columns[0]: 'ts_start'})
     df2['ts_start'] = pd.to_datetime(df2['ts_start']).dt.round('1s').dt.time
     
@@ -66,5 +66,5 @@ ax.legend(
 )
 
 plt.title(f'QPS and CPU utilization Threads=2 Cores={CORES}')
-plt.savefig(f'../fig/part4-1-d-{CORES}.png')
+plt.savefig(f'../result/fig/part4-1-d-{CORES}.png')
 # plt.show()

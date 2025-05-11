@@ -92,11 +92,28 @@ Make sure memcache is running on 1 or two cores.
 
 You can copy the necessary python scripts into the memcache VM via:
 ./move-scripts.sh
-You can execute it whenever you adjusted sth in the script on you host machine.
 
-Create a venv on the memcache machine and you are good to go.
-
-
-
-
-
+#### 5.1.3 Dyanmic scheduling and evaluation
+This section corresponds to 5.1.3 in the report.
+Run the dynamic measurement script on the client-measure VM:
+```
+$ ./ssh-measure-dyn.sh
+```
+Set up a virtual evnironment in memcache-server VM:
+```
+$ python3 -m venv venv
+$ source venv/bin/activate
+$ pip install docker
+```
+Run the scheduler on the memcache-server VM:
+```
+$ python3 scheduler.py
+```
+On the agent VM:
+```
+$ ./mcperf -T 8 -A
+```
+On the measurement VM:
+```
+$ ./ mcperf -s <INTERNAL_MEMCACHED_IP> --loadonly && ./mcperf -s <INTERNAL_MEMCACHED_IP> -a <INTERNAL_AGENT_IP> --noload -T 8 -C 8 -D 4 -Q 1000 -c 8 -t 60 --qps_interval 10 --qps_min 5000 --qps_max 180000
+```

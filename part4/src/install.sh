@@ -81,5 +81,3 @@ for NODE in "${NODES[@]}"; do
             make
     "
 done
-
-

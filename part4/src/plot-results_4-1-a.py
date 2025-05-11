@@ -4,15 +4,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def get_df(config):
-    df1 = pd.read_csv(f'results/{config}-run1.txt', delim_whitespace=True)
-    df2 = pd.read_csv(f'results/{config}-run2.txt', delim_whitespace=True)
-    df3 = pd.read_csv(f'results/{config}-run3.txt', delim_whitespace=True)
+    df1 = pd.read_csv(f'../results/{config}-run1.txt', delim_whitespace=True)
+    df2 = pd.read_csv(f'../results/{config}-run2.txt', delim_whitespace=True)
+    df3 = pd.read_csv(f'../results/{config}-run3.txt', delim_whitespace=True)
 
     df = pd.DataFrame({
         'QPS': df1['QPS'],
-        'run1': df1['p95'],
-        'run2': df2['p95'],
-        'run3': df3['p95'],
+        'run1': df1['p95']/1000,
+        'run2': df2['p95']/1000,
+        'run3': df3['p95']/1000,
     })
     
     df['mean'] = df[['run1', 'run2', 'run3']].mean(axis=1)
@@ -39,6 +39,6 @@ plt.ylabel('95th percentile Latency [ms]')
 
 plt.legend()
 plt.title('memcached Performance varying Threads(T) and Cores(C)')
-plt.savefig('part4_1_a.pdf')
+plt.savefig('../fig/part4_1_a.png')
 # plt.show()
 

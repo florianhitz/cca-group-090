@@ -5,4 +5,3 @@ echo "Connect to ${NAME} via ssh"
 gcloud compute ssh \
     --ssh-key-file ~/.ssh/cloud-computing ubuntu@$NAME \
     --zone europe-west1-b \
-

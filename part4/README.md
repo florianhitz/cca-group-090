@@ -1,31 +1,71 @@
-## 1. Initialization
-run setup-part4.sh
+# User Instruction for Part 3
 
-## 2. Installation
-run install.sh
+## Part 4 Folder Structure
 
-This will install all the necessary requirements (memcache, docker etc.) on all the vms.
+## Usage Specification
+Please make sure that you are under the current working directory ```/part4/src```
 
-## 3. Login
-In a separate terminal run:
-ssh-measure-dyn.sh (for dynamic load) or ssh-measure.sh (for constant load)
+### Step 1. Set Up Kubernetes Nodes
+This step sets up a Kubernetes cluster with 1 master and 3 worker nodes:
+ - a 2-core VM cluster master
+ - a 4-core high memory VM for memcached server, 7 batch jobs and scheduling controller
+ - a 8-core VM for the mcperf agent
+ - a 2-core VM for the mcperf measurement machine
+```
+$ ./setup-part4.sh
+```
+#### (Optional) Fix Missing Node Labels
+In case that your nodes are not labelled, you can manually attach the labels using the helper script:
+```
+$ ./label-nodes.sh
+```
 
-In a separate terminal run:
-ssh-client
+### Step 2. Install Required Software on Each VM
+Run the following command to install all necessary software components:
+ - memcached on the memcache-server VM.
+ - augmented mcperf on the client-agent and client-measure VMs (for mcperf agent and measurement machine)
+ - docker on the memcache-server VM (for running the 7 batch jobs)
+```
+$ ./install.sh
+```
 
-Both of the above scripts will automaticall print the correct memcache command.
-This command can be copy-pasted into the cli to run client or measure respectively.
+###  3. SSH into the client-agent, client-measure and memcache-server VMs
+#### 3.1 - Connect to client-measure
+Open a new terminal and run the following for ```--scan 5000:220000:5000``` testing:
+```
+$ ./ssh-measure.sh
+```
+or for dynamic load ```--qps_interval 10 --qps_min 5000 --qps_max 180000``` testing:
+```
+$ ./ssh-measure-dyn.sh
+```
+#### 3.2 - Connect to client-agent
+Open a new terminal and run:
+```
+$ ./ssh-client
+```
+Both scripts in Step 3.1 and 3.2 will automaticall print the correct memcache command. You can then copy-paste the printed command into the respective SSH session to run the load generation or measurement.
+#### 3.3 - Connect to memcache-server
+Open another new terminal and run:
+```
+$ ./ssh-memc.sh
+```
+At this point, there should be four terminals open:
+ - the main console
+ - the client-measure VM
+ - the client-agent VM
+ - the memcache-server VM
+After each measurement, please copy the result output from client-measure VM terminal and save it under the ```results``` folder using the following naming scheme:
+```
+t<num_of_threads>_c<num_of_cores>-run<run_index>.txt
+```
 
-In a separate terminal run:
-ssh-memc.sh
-
-You are now logged into three different vms (in three different terminal windows)
-
-## 4.1.a Plotting 
-Collect memcached results and save it into the results folder as txt
-Then run 
-plot-results_4-1-a.py
-to generate the plot.
+### Step 4.1.a Plot the p95 Latency for --scan 5000:220000:5000
+After Step 3, you should have collected p95 lantecy results under different numbers of threads/CPU cores. Since the test under each condition is required to be simulated at least three times, there should be at least 12 files saved in the ```result``` folder.
+To visualize the relationship between p95 tail latency and QPS, run:
+```
+python3 plot-results_4-1-a.py
+```
 
 ## 4.1.d Plotting 
 Collect memcached results and save it into the results-cpu folder as txt

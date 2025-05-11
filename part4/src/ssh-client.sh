@@ -7,4 +7,3 @@ gcloud compute ssh \
     --ssh-key-file ~/.ssh/cloud-computing ubuntu@$NAME \
     --zone europe-west1-b \
 #     --command "cd memcache-perf-dynamic/ && ./mcperf -T 8 -A"
-

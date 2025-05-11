@@ -49,11 +49,12 @@ fig, ax = plt.subplots()
 ax.plot(df['QPS'], df['p95']/1000, label='QPS', c='blue', marker='.')
 ax.set_xlabel('Achieved QPS')
 ax.set_ylabel('95th percentile Latency [ms]')
-ax.hlines(0.8, df['QPS'].iloc[0], df['QPS'].iloc[-1], colors='black', linestyles='dashed')
+ax.hlines(0.8, df['QPS'].iloc[0], df['QPS'].iloc[-1], colors='blue', linestyles='dashed')
 
 ax2 = ax.twinx()
 ax2.plot(df['QPS'], df['CPU'], label='CPU (mvg. avg.)', c='red', marker="v")
 ax2.set_ylabel('CPU Usage [%]')
+ax2.set_ylim(0, 100 * CORES)
 
 
 lines1, labels1 = ax.get_legend_handles_labels()

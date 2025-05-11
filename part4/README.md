@@ -61,19 +61,27 @@ t<num_of_threads>_c<num_of_cores>-run<run_index>.txt
 ```
 
 ### Step 4.1.a Plot the p95 Latency for --scan 5000:220000:5000
-After Step 3, you should have collected p95 lantecy results under different numbers of threads/CPU cores. Since the test under each condition is required to be simulated at least three times, there should be at least 12 files saved in the ```result``` folder.
-To visualize the relationship between p95 tail latency and QPS, run:
+After Step 3, you should have collected p95 lantecy results under different numbers of threads/CPU cores. Since the test under each condition is required to be simulated at least three times, there should be at least 12 files saved in the ```log/4-1-a``` folder.
+To visualize the relationship between p95 tail latency and QPS under various configurations, run:
 ```
 python3 plot-results_4-1-a.py
 ```
+The file is called `plot-results_4-1-a.py` because it corresponds to part 4.1.a in the report.
 
-## 4.1.d Plotting 
-Collect memcached results and save it into the results-cpu folder as txt
-Collect cpu results and save it into the results-cpu folder as txt
+## 4.1.d Plot the p95 Latency and CPU utilization for --scan 5000:220000:5000 with 1 and 2 threads comparison
+Collect the memcached results and save as .txt files in the ```log/4-1-d``` directory, using the naming scheme ```t2c<1/2>-run<1/2/3>.txt```
+Collect the CPU usage results and save them in the same ```log/4-1-d``` directory with the naming scheme ```cpu<1/2>-run<1/2/3>.txt```
+To visualize the relationship between the achieved QPS, p95 tail latency and CPU utilization under 1-core vs. 2-core settings, run:
+```
+python3 plot-results_4-1-d.py
+```
+The file is named `plot-results_4-1-d.py` to correspond with part 4.1.d in the report.
 
-To adjust the threads follow the project description.
-To adjust cores run (in the memcache terminal):
+To adjust the number of threads follow the project description.
+To adjust the number of CPU cores, run the following in the memcached server terminal:
+```
 sudo taskset -a -cp [<cores as list>] <PID-MEMCACHED>
+```
 
 (-a flag is important!)
 

@@ -13,6 +13,7 @@ USAGE_THRESHOLD = 65
 
 client = docker.from_env()
 sl = SchedulerLogger()
+sl.job_start(Job.MEMCACHED, [0], 2)
 
 images_to_pull = {
     'blackscholes': 'anakli/cca:parsec_blackscholes',
@@ -121,6 +122,9 @@ pid = subprocess.check_output(['pgrep', 'memcached']).decode().strip()
 start = time.time()
 end = 0
 last_measure_time = time.time()
+
+# usage = get_memached_cup_usage(pid)
+
 while True:
 
     if len(containers_1_done) == 0 and len(containers_23_done) == 7:
@@ -174,6 +178,7 @@ while True:
         job_start_times[job_name] = time.time()
         sl.job_start(Job[job_name.upper()], [1], 4)
         container_1_running.start()
+
     
     """
     core 2,3 logic
@@ -184,18 +189,23 @@ while True:
 
     # when container_1 finished allow to use max resources available
     if len(containers_1_done) == 0 and container_23_running and container_23_running.status == 'running':
+        job_name = container_23_running.name
         if usage <= 30:
             print(f'usage: {usage}, setting new quota 350')
             container_23_running.update(cpuset_cpus='0,1,2,3', cpu_period=100_000, cpu_quota=350_000)
+            sl.update_cores(Job[job_name.upper], [0,1,2,3])
         elif usage <= USAGE_THRESHOLD:
             print(f'usage: {usage}, setting new quota 325')
             container_23_running.update(cpuset_cpus='0,1,2,3', cpu_period=100_000, cpu_quota=325_000)
+            sl.update_cores(Job[job_name.upper], [0,1,2,3])
         elif usage <= 100:
             print(f'usage: {usage}, setting new quota 300')
             container_23_running.update(cpuset_cpus='1,2,3', cpu_period=100_000, cpu_quota=300_000)
+            sl.update_cores(Job[job_name.upper], [1,2,3])
         else:
             print(f'usage: {usage}, setting new quota 200')
             container_23_running.update(cpuset_cpus='2,3', cpu_period=100_000, cpu_quota=200_000)  
+            sl.update_cores(Job[job_name.upper], [2,3])
 
     if container_23_running and container_23_running.status == 'exited':
         job_name = container_23_running.name

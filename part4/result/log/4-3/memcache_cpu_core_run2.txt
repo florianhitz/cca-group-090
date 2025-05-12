@@ -1,0 +1,25 @@
+Memcached Core Allocation Log:
+At 1747004699.968, memcached was assigned 1 cores
+At 1747004710.190, memcached was assigned 2 cores
+At 1747004881.122, memcached was assigned 1 cores
+At 1747004899.636, memcached was assigned 2 cores
+At 1747004909.943, memcached was assigned 1 cores
+At 1747004930.433, memcached was assigned 2 cores
+At 1747004980.974, memcached was assigned 1 cores
+At 1747004999.225, memcached was assigned 2 cores
+At 1747005009.996, memcached was assigned 1 cores
+At 1747005020.298, memcached was assigned 2 cores
+At 1747005049.114, memcached was assigned 1 cores
+At 1747005090.260, memcached was assigned 2 cores
+At 1747005139.587, memcached was assigned 1 cores
+At 1747005180.664, memcached was assigned 2 cores
+At 1747005209.475, memcached was assigned 1 cores
+At 1747005219.756, memcached was assigned 2 cores
+At 1747005230.205, memcached was assigned 1 cores
+At 1747005269.283, memcached was assigned 2 cores
+At 1747005279.570, memcached was assigned 1 cores
+At 1747005289.859, memcached was assigned 2 cores
+At 1747005300.152, memcached was assigned 1 cores
+At 1747005310.498, memcached was assigned 2 cores
+At 1747005349.626, memcached was assigned 1 cores
+At 1747005390.852, memcached was assigned 2 cores

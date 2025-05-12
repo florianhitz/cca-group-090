@@ -98,7 +98,7 @@ def load_memcache_cpu_core_file(memcache_cpu_core_file):
     return memcache_cpu_core
 
 
-def plot_type_a(qps_p95_file, job_info_file, exp_idx):
+def plot_type_a(qps_p95_file, job_info_file, exp_idx, report_part):
 
     p95_latency, actual_qps, timestamp_start, timestamp_end = load_qps_p95_file(qps_p95_file)
     job_info_df, _ = load_job_info_file(job_info_file)
@@ -208,11 +208,11 @@ def plot_type_a(qps_p95_file, job_info_file, exp_idx):
 
     fig.show()
     fig_dir = "../result/fig/"
-    fig.write_image(os.path.join(fig_dir, f"experiment_{exp_idx}_p95_latency_and_achieved_qps_30mins.png"), scale=3, engine="kaleido")
-    fig.write_html(os.path.join(fig_dir, f"experiment_{exp_idx}_p95_latency_and_achieved_qps_30mins.html"))
+    fig.write_image(os.path.join(fig_dir, f"part_{report_part}_experiment_{exp_idx}_p95_latency_and_achieved_qps_30mins.png"), scale=3, engine="kaleido")
+    fig.write_html(os.path.join(fig_dir, f"part_{report_part}_experiment_{exp_idx}_p95_latency_and_achieved_qps_30mins.html"))
 
 
-def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx):
+def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx, report_part):
 
     p95_latency, actual_qps, timestamp_start, timestamp_end = load_qps_p95_file(qps_p95_file)
     job_info_df, _ = load_job_info_file(job_info_file)
@@ -308,8 +308,8 @@ def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx):
             side = "left",
             tickmode="linear",
             dtick=1,
-            tickvals=[1, 2, 3, 4],
-            range=[0.1, 4]
+            tickvals=[1, 2],
+            range=[0.5, 2.5]
         ),
         yaxis2 = dict(
             title = "Achieved QPS",
@@ -323,8 +323,8 @@ def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx):
 
     fig.show()
     fig_dir = "../result/fig/"
-    fig.write_image(os.path.join(fig_dir, f"experiment_{exp_idx}_memcached_cpu_core_allocation_over_30mins.png"), scale=3, engine="kaleido")
-    fig.write_html(os.path.join(fig_dir, f"experiment_{exp_idx}_memcached_cpu_core_allocation_over_30mins.html"))
+    fig.write_image(os.path.join(fig_dir, f"part_{report_part}_experiment_{exp_idx}_memcached_cpu_core_allocation_over_30mins.png"), scale=3, engine="kaleido")
+    fig.write_html(os.path.join(fig_dir, f"part_{report_part}_experiment_{exp_idx}_memcached_cpu_core_allocation_over_30mins.html"))
 
 
 
@@ -370,7 +370,8 @@ def cal_slo_violation_ratio(qps_p95_file, job_info_file, idx):
 
 if __name__ == "__main__":
     
-    result_path = "../result/log/4-3/"
+    result_path_4_3 = "../result/log/4-3/"
+    result_path_4_4 = "../result/log/4-3/"
     qps_p95_files = ["qps_p95_run1.txt", "qps_p95_run2.txt", "qps_p95_run3.txt"]
     job_info_files = ["job_info_run1.txt", "job_info_run2.txt", "job_info_run3.txt"]
     memcache_cpu_core_files = ["memcache_cpu_core_run1.txt", "memcache_cpu_core_run2.txt", "memcache_cpu_core_run3.txt"]
@@ -379,12 +380,12 @@ if __name__ == "__main__":
     total_makespans = []
 
     for idx in range(1, 4):
-        qps_p95_file = os.path.join(result_path, qps_p95_files[idx-1])
-        job_info_file = os.path.join(result_path, job_info_files[idx-1])
-        memcache_cpu_core_file = os.path.join(result_path, memcache_cpu_core_files[idx-1])
+        qps_p95_file = os.path.join(result_path_4_3, qps_p95_files[idx-1])
+        job_info_file = os.path.join(result_path_4_3, job_info_files[idx-1])
+        memcache_cpu_core_file = os.path.join(result_path_4_3, memcache_cpu_core_files[idx-1])
 
-        plot_type_a(qps_p95_file, job_info_file, idx)
-        plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, idx)
+        plot_type_a(qps_p95_file, job_info_file, idx, "4_3")
+        plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, idx, "4_3")
         cal_slo_violation_ratio(qps_p95_file, job_info_file, idx)
 
         job_info_df, total_makespan = load_job_info_file(job_info_file)

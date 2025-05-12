@@ -86,33 +86,60 @@ $ sudo taskset -a -cp [<cores as list>] <PID-MEMCACHED>
 
 ### Step 5: Run Batch Jobs 
 Make sure you have runned the `install.sh` script, whic takes care of the installation of everything you need for this part.
-
-You can copy the `scheduler.py` and `scheduler_logger.py` into the memcache VM via:
+#### Step 5.1 Copy Python Scripts into the Memcache VM:
+Copy the `scheduler.py` and `scheduler_logger.py` files into the memcache VM using:
 ```
 $ ./move-scripts.sh
 ```
-
-#### 5.1 Dyanmic Scheduling and Evaluation
-This section corresponds to 4.1.3 in the report.
-Run the dynamic measurement script on the client-measure VM:
+#### Step 5.2 Run the Dynamic Measure Script on the client-measure VM
+Execute the dynamic measurement script on the client-measure VM:
 ```
 $ ./ssh-measure-dyn.sh
 ```
-Set up a virtual evnironment in memcache-server VM:
+#### Step 5.3 Set up a Virtual Evnironment in memcache-server VM
+On the memcache-server VM, set up and activate a Python virtual environment, then install the required packages:
 ```
 $ python3 -m venv venv
 $ source venv/bin/activate
-$ pip install docker
+$ pip install docker pandas
 ```
-Run the scheduler on the memcache-server VM:
+#### Step 5.4 Run the Scheduler on the memcache-server VM
+Run the scheduler with elevated privileges:
 ```
 $ sudo $(which python3) scheduler.py
 ```
-On the agent VM:
+##### (Optional) If You Encouter Docker Containers Conflicts
+Remove any conflicting Docker containers:
+```
+$ sudo docker ps -aq
+$ sudo docker rm -f <container id>
+```
+#### Step 5.5 Prepare the agent VM
+On the agent VM, run:
 ```
 $ ./mcperf -T 8 -A
 ```
-On the measurement VM:
+#### Step 5.6 Prepare the measurement VM
+On the measurement VM, first load the data, then start the test:
 ```
-$ ./ mcperf -s <INTERNAL_MEMCACHED_IP> --loadonly && ./mcperf -s <INTERNAL_MEMCACHED_IP> -a <INTERNAL_AGENT_IP> --noload -T 8 -C 8 -D 4 -Q 1000 -c 8 -t 60 --qps_interval 10 --qps_min 5000 --qps_max 180000
+$ ./ mcperf -s <INTERNAL_MEMCACHED_IP> --loadonly && ./mcperf -s <INTERNAL_MEMCACHED_IP> -a <INTERNAL_AGENT_IP> --noload -T 8 -C 8 -D 4 -Q 1000 -c 8 -t 60 --qps_interval <5/10> --qps_min 5000 --qps_max 180000
+```
+##### Step 5.7 Record the Results
+Copy the job information output from the memcache VM terminal and save it to:
+```
+part4/result/log/<4-3/4-4>/job_info_run<1/2/3>.txt
+``` 
+Copy the CPU core allocation log from the memcache VM terminal and save it to:
+```
+part4/result/log/<4-3/4-4>/memcache_cpu_core_run<1/2/3>.txt
+``` 
+Copy the QPS and p95 latency output from the client-measure VM and save it to:
+```
+part4/result/log/<4-3/4-4>/qps_p95_run<1/2/3>.txt
+```
+
+#### Step 5.8 Visualize the Output
+Return to your main console, and run the analysis script:
+```
+$ python3 analyze_results_4_3_4.py
 ```

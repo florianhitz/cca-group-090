@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
-import threading
 import subprocess
 import time
-import os
 import docker
+import pandas as pd
 
 from scheduler_logger import SchedulerLogger, Job
 
@@ -224,12 +223,17 @@ while True:
 sl.end()
 
 # Report
+job_info_df = pd.DataFrame.from_dict(job_durations, orient="index")
+job_start = job_info_df["start"].astype(float).min()
+job_info_df["end"] = job_info_df["start"].astype(float) + job_info_df["duration"].astype(float)
+job_end = job_info_df["end"].max()
+
 print("\nExecution Time Summary:")
 print("Execution time per batch job: ")
 for job, duration in job_durations.items():
     print(f"{job} starts at: {job_start_times[job]}")
     print(f"{job} lasts for {duration:.2f} seconds")
-print(f"Total makespan: {end - start:.2f} seconds")
+print(f"Total makespan: {job_end - job_start:.2f} seconds")
 
 print("\nMemcached Core Allocation Log:")
 for t, c in memcached_core_log.items():

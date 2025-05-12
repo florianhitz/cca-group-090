@@ -3,6 +3,7 @@
 import threading
 import subprocess
 import time
+import os
 import docker
 
 from scheduler_logger import SchedulerLogger, Job
@@ -38,6 +39,16 @@ image_commands = {
 for image in images_to_pull.values():
     print(f'Pulling image {image}')
     client.images.pull(image)
+
+
+def measure_memcache_cpu_core():
+
+    pid = subprocess.check_output(['pgrep', 'memcached']).decode().strip()
+    current_cores = subprocess.check_output(['sudo', 'taskset', '-pc', str(pid)]).decode().strip()
+    current_cores = current_cores.split(':')[-1].strip().split(',')
+    current_cores = len(current_cores)
+
+    return current_cores
 
 
 def get_memached_cup_usage(pid):
@@ -108,9 +119,22 @@ for name in queue:
 pid = subprocess.check_output(['pgrep', 'memcached']).decode().strip()
 
 start = time.time()
+end = 0
+last_measure_time = time.time()
 while True:
+
     if len(containers_1_done) == 0 and len(containers_23_done) == 7:
+        end = time.time()
+
+    current_time = time.time()
+    if current_time > start+1800:
         break
+
+    if current_time - last_measure_time >= 10:
+        core_count = measure_memcache_cpu_core()
+        memcached_core_log[current_time] = core_count
+        print(f"[{current_time:.2f}] memcached uses {core_count} cores")
+        last_measure_time = current_time
 
     time.sleep(1)
 
@@ -187,7 +211,6 @@ while True:
         sl.job_start(Job[job_name.upper()], [2, 3], 4)
         container_23_running.start()
 
-end = time.time()
 sl.end()
 
 # Report

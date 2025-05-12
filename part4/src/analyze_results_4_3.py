@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
+from datetime import datetime
 
 
 job_label_y = {
@@ -101,6 +102,8 @@ def plot_type_a(qps_p95_file, job_info_file, exp_idx):
 
     p95_latency, actual_qps, timestamp_start, timestamp_end = load_qps_p95_file(qps_p95_file)
     job_info_df, _ = load_job_info_file(job_info_file)
+    benchmark_start = datetime.fromtimestamp(timestamp_start)
+    benchmark_start = benchmark_start.strftime('%Y-%m-%d %H:%M:%S')
 
     time_axis = list(range(0, len(p95_latency)*10, 10))
 
@@ -137,6 +140,16 @@ def plot_type_a(qps_p95_file, job_info_file, exp_idx):
         yref="y"
     )
 
+    # Indicate the start time
+    fig.add_annotation(
+        text=f"Experiment Start Time: {benchmark_start}",
+        xref="paper", yref="paper",
+        x=0, y=-0.2,
+        showarrow=False,
+        font=dict(size=12),
+        align="left"
+    )
+
     # Add job annotations
     for _, row in job_info_df.iterrows():
         rel_start = float(row["start"]) - timestamp_start
@@ -146,7 +159,6 @@ def plot_type_a(qps_p95_file, job_info_file, exp_idx):
         if job in job_label_y:
             y_label_pos = job_label_y[job]
             rel_end = rel_start + duration
-            print("rel_start: ", rel_start, " rel_end: ", rel_end)
             color = job_colors.get(job, "#CCCCCC")
 
             # Jobs start
@@ -176,9 +188,9 @@ def plot_type_a(qps_p95_file, job_info_file, exp_idx):
     # Layout with dual y-axes
     fig.update_layout(
         title = f"Experiment {exp_idx}: P95 Latency and Achieved QPS Over 30 Mins",
-        width=1400,
+        width=1200,
         height=500,
-        xaxis = dict(title="Time [s]", range=[0, 1800]),
+        xaxis = dict(title="Time (s)", range=[0, 1800]),
         yaxis = dict(
             title = "p95 Latency (ms)",
             side = "left",
@@ -205,33 +217,27 @@ def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx):
     p95_latency, actual_qps, timestamp_start, timestamp_end = load_qps_p95_file(qps_p95_file)
     job_info_df, _ = load_job_info_file(job_info_file)
     memcache_cpu_core = load_memcache_cpu_core_file(memcache_cpu_core_file)
+    benchmark_start = datetime.fromtimestamp(timestamp_start)
+    benchmark_start = benchmark_start.strftime('%Y-%m-%d %H:%M:%S')
 
     # Time axis based on QPS data (10-second intervals)
     time_axis = list(range(0, len(actual_qps) * 10, 10))
 
-    # Build full memcached CPU core time series aligned with time_axis
-    memcache_core_df = pd.DataFrame(list(memcache_cpu_core.items()), columns=["timestamp", "cores"])
-    memcache_core_df = memcache_core_df.sort_values("timestamp")
+    memcache_core_timestamps = []
+    core_num_list = []
 
-    full_df = pd.DataFrame({"timestamp": [timestamp_start + t for t in time_axis]})
-    full_df["cores"] = None
-
-    for i in range(len(memcache_core_df)):
-        t = memcache_core_df.loc[i, "timestamp"]
-        full_df.loc[full_df["timestamp"] >= t, "cores"] = memcache_core_df.loc[i, "cores"]
-
-    full_df["cores"] = full_df["cores"].ffill().bfill().astype(int)
-
-    # Now shift timestamps to relative values from 0
-    full_df["rel_time"] = (full_df["timestamp"] - timestamp_start)
-    rel_time_axis = time_axis
+    for memcache_core_timestamp, core_num in memcache_cpu_core.items():
+        if memcache_core_timestamp > timestamp_end:
+            break
+        memcache_core_timestamps.append(memcache_core_timestamp-timestamp_start)
+        core_num_list.append(core_num)
 
     fig = go.Figure()
 
-    # Left y-axis: p95 latency
+    # Left y-axis: cores for memcache
     fig.add_trace(go.Scatter(
-        x = full_df["rel_time"],
-        y = full_df["cores"],
+        x=memcache_core_timestamps,
+        y=core_num_list,
         name = "Memcached CPU Cores",
         yaxis="y1",
         mode = "lines+markers"
@@ -239,12 +245,22 @@ def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx):
 
     # Right y-axis: QPS
     fig.add_trace(go.Scatter(
-        x=rel_time_axis,
+        x=time_axis,
         y=actual_qps,
         name="Achieved QPS",
         yaxis="y2",
         mode="lines"
     ))
+
+    # Indicate the start time
+    fig.add_annotation(
+        text=f"Experiment Start Time: {benchmark_start}",
+        xref="paper", yref="paper",
+        x=0, y=-0.2,
+        showarrow=False,
+        font=dict(size=12),
+        align="left"
+    )
 
     # Add job annotations
     for _, row in job_info_df.iterrows():
@@ -255,7 +271,6 @@ def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx):
         if job in job_label_y:
             y_label_pos = job_label_y[job]
             rel_end = rel_start + duration
-            print("rel_start: ", rel_start, " rel_end: ", rel_end)
             color = job_colors.get(job, "#CCCCCC")
 
             # Jobs start
@@ -285,9 +300,9 @@ def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx):
     # Layout with dual y-axes
     fig.update_layout(
         title = f"Experiment {exp_idx}: Memcached CPU Core Allocation",
-        width=1400,
+        width=1200,
         height=500,
-        xaxis = dict(title="Time [s]", range=[0, 1800]),
+        xaxis = dict(title="Time (s)", range=[0, 1800]),
         yaxis = dict(
             title = "Memcached CPU Cores",
             side = "left",
@@ -325,7 +340,7 @@ def cal_job_mean_std_time(job_info_dfs, total_makespans):
     return job_mean_std_time, makespan_mean, makespan_std
 
 
-def cal_slo_violation_ratio(qps_p95_file, job_info_file):
+def cal_slo_violation_ratio(qps_p95_file, job_info_file, idx):
 
     p95_latency, actual_qps, timestamp_start, timestamp_end = load_qps_p95_file(qps_p95_file)
     job_info_df, _ = load_job_info_file(job_info_file)
@@ -348,7 +363,7 @@ def cal_slo_violation_ratio(qps_p95_file, job_info_file):
     total_points = len(valid_indices)
     violation_ratio = violations / total_points if total_points > 0 else 0.0
 
-    print(f"SLO violation ratio: {violation_ratio:.2%} ({violations}/{total_points})")
+    print(f"Exp {idx} SLO violation ratio: {violation_ratio:.2%} ({violations}/{total_points})")
     
     return violation_ratio
 
@@ -370,15 +385,12 @@ if __name__ == "__main__":
 
         plot_type_a(qps_p95_file, job_info_file, idx)
         plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, idx)
-        cal_slo_violation_ratio(qps_p95_file, job_info_file)
+        cal_slo_violation_ratio(qps_p95_file, job_info_file, idx)
 
         job_info_df, total_makespan = load_job_info_file(job_info_file)
         
         job_info_dfs.append(job_info_df)
         total_makespans.append(total_makespan)
-
-        if idx == 1:
-            break
     
     job_mean_std_time, makespan_mean, makespan_std = cal_job_mean_std_time(job_info_dfs, total_makespans)
     print("job_mean_std_time:\n", job_mean_std_time)

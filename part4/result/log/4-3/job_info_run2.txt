@@ -1,17 +1,17 @@
 Execution Time Summary:
 Execution time per batch job: 
-blackscholes starts at: 1747004680.1793
-blackscholes lasts for 77.52 seconds
-radix starts at: 1747004757.7005756
-radix lasts for 28.91 seconds
-canneal starts at: 1747004786.61331
-canneal lasts for 147.94 seconds
-vips starts at: 1747004934.5524929
-vips lasts for 58.31 seconds
-freqmine starts at: 1747004992.8594983
-freqmine lasts for 229.01 seconds
-ferret starts at: 1747005221.8744197
-ferret lasts for 166.79 seconds
-dedup starts at: 1747005388.6675882
-dedup lasts for 23.10 seconds
-Total makespan: 733.60 seconds
+blackscholes starts at: 1747019602.9664538
+blackscholes lasts for 83.19 seconds
+radix starts at: 1747019686.1574838
+radix lasts for 31.10 seconds
+canneal starts at: 1747019717.2577026
+canneal lasts for 160.91 seconds
+vips starts at: 1747019878.169639
+vips lasts for 61.22 seconds
+freqmine starts at: 1747019939.39367
+freqmine lasts for 231.42 seconds
+ferret starts at: 1747020170.8170912
+ferret lasts for 186.03 seconds
+dedup starts at: 1747020356.845035
+dedup lasts for 23.12 seconds
+Total makespan: 662.71 seconds

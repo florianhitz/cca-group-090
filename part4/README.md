@@ -125,9 +125,9 @@ On the measurement VM, first load the data, then start the test:
 $ ./ mcperf -s <INTERNAL_MEMCACHED_IP> --loadonly && ./mcperf -s <INTERNAL_MEMCACHED_IP> -a <INTERNAL_AGENT_IP> --noload -T 8 -C 8 -D 4 -Q 1000 -c 8 -t 60 --qps_interval <5/10> --qps_min 5000 --qps_max 180000
 ```
 ##### Step 5.7 Record the Results
-Copy the job information output from the memcache VM terminal and save it to:
+Copy the job information output from the memcache VM and save it to:
 ```
-part4/result/log/<4-3/4-4>/job_info_run<1/2/3>.txt
+part4/result/log/<4-3/4-4>/jobs_<1/2/3>.txt
 ``` 
 Copy the CPU core allocation log from the memcache VM terminal and save it to:
 ```
@@ -135,11 +135,17 @@ part4/result/log/<4-3/4-4>/memcache_cpu_core_run<1/2/3>.txt
 ``` 
 Copy the QPS and p95 latency output from the client-measure VM and save it to:
 ```
-part4/result/log/<4-3/4-4>/qps_p95_run<1/2/3>.txt
+part4/result/log/<4-3/4-4>/mcperf<1/2/3>.txt
 ```
 
 #### Step 5.8 Visualize the Output
-Return to your main console, and run the analysis script:
+Return to your main console, and run the analysis script. Don't forget to clarify the correct log path in the main:
 ```
 $ python3 analyze_results_4_3_4.py
+```
+
+### Step 6 Teardown All the Clusters
+Don't forget to teardown all the clusters:
+```
+$ ./teardown.sh
 ```

@@ -412,7 +412,7 @@ def cal_slo_violation_ratio(mcperf_file, job_info_file, idx):
 if __name__ == "__main__":
     
     result_path_4_3 = "../result/log/4-3/"
-    result_path_4_4 = "../result/log/4-3/"
+    result_path_4_4 = "../result/log/4-4/"
     mcperf_files = ["mcperf_1.txt", "mcperf_2.txt", "mcperf_3.txt"]
     job_files = ["jobs_1.txt", "jobs_2.txt", "jobs_3.txt"]
     memcache_cpu_core_files = ["memcache_cpu_core_run1.txt", "memcache_cpu_core_run2.txt", "memcache_cpu_core_run3.txt"]

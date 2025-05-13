@@ -3,7 +3,6 @@
 import subprocess
 import time
 import docker
-import pandas as pd
 
 from scheduler_logger import SchedulerLogger, Job
 
@@ -83,14 +82,13 @@ def adjust_memcached_cores(pid, cores=1):
         print(f'Usage: {usage}, increase cores')
     else:
         print(f'Number of cores not supported: {cores}')
-
-    # Log to dict with timestamp
+    
     timestamp = time.time()
     memcached_core_log[timestamp] = cores
+
     return True
 
 queue_shared_cores = []
-#queue = ['dedup', 'ferret', 'freqmine', 'vips', 'canneal']
 queue = ['dedup', 'ferret', 'freqmine', 'vips', 'canneal', 'radix', 'blackscholes']
 
 containers_1_ready = []
@@ -101,9 +99,6 @@ containers_23_ready = []
 containers_23_done = []
 container_23_running = None
 
-# Track execution times
-job_start_times = {}
-job_durations = {}
 memcached_core_log = {}
 
 for name in queue_shared_cores:
@@ -118,17 +113,17 @@ for name in queue:
 
 pid = subprocess.check_output(['pgrep', 'memcached']).decode().strip()
 
+usage = get_memached_cup_usage(pid)
+
 start = time.time()
 end = 0
 last_measure_time = time.time()
-
-# usage = get_memached_cup_usage(pid)
 
 while True:
 
     if len(containers_1_done) == 0 and len(containers_23_done) == 7:
         end = time.time()
-
+    
     current_time = time.time()
     if current_time > start+1800:
         break
@@ -163,22 +158,18 @@ while True:
             container_1_running.update(cpuset_cpus='1', cpu_period=100_000, cpu_quota=100_000)
             # container_1_running.unpause()
 
-
     if container_1_running and container_1_running.status == 'exited':
         job_name = container_1_running.name
         sl.job_end(Job[job_name.upper()])
-        job_durations[job_name] = time.time() - job_start_times[job_name]
         containers_1_done += [container_1_running]
         container_1_running = None
         
     if not container_1_running and len(containers_1_ready):
         container_1_running = containers_1_ready.pop()
         job_name = container_1_running.name
-        job_start_times[job_name] = time.time()
         sl.job_start(Job[job_name.upper()], [1], 4)
         container_1_running.start()
 
-    
     """
     core 2,3 logic
     When memcached load is low, increase quota for batch applications.
@@ -192,49 +183,35 @@ while True:
         if usage <= 30:
             print(f'usage: {usage}, setting new quota 350')
             container_23_running.update(cpuset_cpus='0,1,2,3', cpu_period=100_000, cpu_quota=350_000)
-            sl.update_cores(Job[job_name.upper], [0,1,2,3])
+            sl.update_cores(Job[job_name.upper()], [0,1,2,3])
         elif usage <= USAGE_THRESHOLD:
             print(f'usage: {usage}, setting new quota 325')
             container_23_running.update(cpuset_cpus='0,1,2,3', cpu_period=100_000, cpu_quota=325_000)
-            sl.update_cores(Job[job_name.upper], [0,1,2,3])
+            sl.update_cores(Job[job_name.upper()], [0,1,2,3])
         elif usage <= 100:
             print(f'usage: {usage}, setting new quota 300')
             container_23_running.update(cpuset_cpus='1,2,3', cpu_period=100_000, cpu_quota=300_000)
-            sl.update_cores(Job[job_name.upper], [1,2,3])
+            sl.update_cores(Job[job_name.upper()], [1,2,3])
         else:
             print(f'usage: {usage}, setting new quota 200')
             container_23_running.update(cpuset_cpus='2,3', cpu_period=100_000, cpu_quota=200_000)  
-            sl.update_cores(Job[job_name.upper], [2,3])
+            sl.update_cores(Job[job_name.upper()], [2,3])
 
     if container_23_running and container_23_running.status == 'exited':
         job_name = container_23_running.name
         sl.job_end(Job[job_name.upper()])
-        job_durations[job_name] = time.time() - job_start_times[job_name]
         containers_23_done += [container_23_running]
         container_23_running = None
     
     if not container_23_running and len(containers_23_ready):
         container_23_running = containers_23_ready.pop()
         job_name = container_23_running.name
-        job_start_times[job_name] = time.time()
         sl.job_start(Job[job_name.upper()], [2, 3], 4)
         container_23_running.start()
 
 sl.end()
 
 # Report
-job_info_df = pd.DataFrame.from_dict(job_durations, orient="index")
-job_start = job_info_df["start"].astype(float).min()
-job_info_df["end"] = job_info_df["start"].astype(float) + job_info_df["duration"].astype(float)
-job_end = job_info_df["end"].max()
-
-print("\nExecution Time Summary:")
-print("Execution time per batch job: ")
-for job, duration in job_durations.items():
-    print(f"{job} starts at: {job_start_times[job]}")
-    print(f"{job} lasts for {duration:.2f} seconds")
-print(f"Total makespan: {job_end - job_start:.2f} seconds")
-
 print("\nMemcached Core Allocation Log:")
 for t, c in memcached_core_log.items():
     print(f"At {t:.3f}, memcached was assigned {c} cores")

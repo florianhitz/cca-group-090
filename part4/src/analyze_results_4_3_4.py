@@ -1,9 +1,10 @@
 import re
 import os
+import ast
 import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 job_label_y = {
@@ -27,14 +28,54 @@ job_colors = {
 }
 
 
-def load_qps_p95_file(qps_p95_file):
+def amplify_jobs_file(job_file, memcache_cpu_core_file):
+
+    memcache_cpu_core = {}
+
+    with open(memcache_cpu_core_file) as f:
+        for line in f:
+            if "At" in line:
+                parts = line.strip().split()
+                timestamp = datetime.fromtimestamp(float(parts[1].strip(','))) - timedelta(hours=2)
+                num_cores = int(parts[-2])
+                if num_cores == 1:
+                    cores = [0]
+                elif num_cores == 2:
+                    cores = [0,1]
+                memcache_cpu_core[timestamp] = cores
+    
+    with open(job_file, "r") as f:
+        lines = f.readlines()
+
+    combined_entries = []
+
+    for line in lines:
+        if "update_cores memcached" in line:
+            continue
+        parts = line.strip().split()
+        timestamp = pd.to_datetime(parts[0])
+        combined_entries.append((timestamp, line))
+    
+    for timestamp, cores in memcache_cpu_core.items():
+        formatted_cores = "[" + ",".join(map(str, memcache_cpu_core[timestamp])) + "]"
+        line = f"{timestamp.isoformat()} update_cores memcached {formatted_cores}\n"
+        combined_entries.append((timestamp, line))
+
+    combined_entries.sort(key=lambda x: x[0])
+
+    with open(job_file, "w") as f:
+        for _, line in combined_entries:
+            f.write(line)
+
+
+def load_mcperf_file(mcperf_file):
 
     p95_latency = []
     actual_qps = []
     timestamp_start = None
     timestamp_end = None
 
-    with open(qps_p95_file, "r") as f:
+    with open(mcperf_file, "r") as f:
         lines = f.readlines()
 
     for line in lines:
@@ -52,58 +93,57 @@ def load_qps_p95_file(qps_p95_file):
     return p95_latency, actual_qps, timestamp_start, timestamp_end
 
 
-def load_job_info_file(job_info_file):
+def load_job_file(job_info_file):
 
     job_info = {}
     total_makespan = 0
+    job_names = job_label_y.keys()
+    memcache_cpu_core = {}
 
     with open(job_info_file) as f:
         for line in f:
-            if "starts" in line:
+            if "start" in line and any(job in line for job in job_names):
                 parts = line.strip().split()
-                job_name = parts[0]
-                start_time = parts[-1]
+                job_name = parts[2]
+                start_time = parts[0]
                 if job_name not in job_info:
                     job_info[job_name] = {}
                 job_info[job_name]["start"] = start_time
-            elif "lasts" in line:
+            elif "end" in line and any(job in line for job in job_names):
                 parts = line.strip().split()
-                job_name = parts[0]
-                duration = parts[-2]
+                job_name = parts[-1]
                 if job_name not in job_info:
                     job_info[job_name] = {}
-                job_info[job_name]["duration"] = duration
-            elif "Total makespan" in line:
+                job_info[job_name]["end"] = parts[0]
+            elif "memcached" in line:
                 parts = line.strip().split()
-                total_makespan = float(parts[-2])
+                timestamp = pd.to_datetime(parts[0]) + pd.Timedelta(hours=2)
+                if "start" in line:
+                    cores = len(ast.literal_eval(parts[-2]))
+                else:
+                    cores = len(ast.literal_eval(parts[-1]))
+                memcache_cpu_core[timestamp] = cores
     
     job_info_df = pd.DataFrame.from_dict(job_info, orient="index")
     job_info_df.index.name = "job"
     job_info_df = job_info_df.reset_index()
-    return job_info_df, total_makespan
+    job_info_df["start"] = pd.to_datetime(job_info_df["start"]) + pd.Timedelta(hours=2)
+    job_info_df["end"] = pd.to_datetime(job_info_df["end"])+ pd.Timedelta(hours=2)
+    job_info_df["duration"] = job_info_df["end"] - job_info_df["start"]
+    job_info_df["duration"] = job_info_df["duration"].dt.total_seconds()
+
+    total_makespan = job_info_df["end"].max() - job_info_df["start"].min()
+    total_makespan = total_makespan.total_seconds()
+
+    return job_info_df, total_makespan, memcache_cpu_core
 
 
-def load_memcache_cpu_core_file(memcache_cpu_core_file):
-    
-    memcache_cpu_core = {}
+def plot_type_a(mcperf_file, job_file, exp_idx, report_part):
 
-    with open(memcache_cpu_core_file) as f:
-        for line in f:
-            if "At" in line:
-                parts = line.strip().split()
-                timestamp = float(parts[1].strip(','))
-                cores = int(parts[-2])
-                memcache_cpu_core[timestamp] = cores
-    
-    return memcache_cpu_core
-
-
-def plot_type_a(qps_p95_file, job_info_file, exp_idx, report_part):
-
-    p95_latency, actual_qps, timestamp_start, timestamp_end = load_qps_p95_file(qps_p95_file)
-    job_info_df, _ = load_job_info_file(job_info_file)
+    p95_latency, actual_qps, timestamp_start, timestamp_end = load_mcperf_file(mcperf_file)
+    job_info_df, total_makespan, memcache_cpu_core = load_job_file(job_file)
     benchmark_start = datetime.fromtimestamp(timestamp_start)
-    benchmark_start = benchmark_start.strftime('%Y-%m-%d %H:%M:%S')
+    benchmark_start_mark = benchmark_start.strftime('%Y-%m-%d %H:%M:%S')
 
     time_axis = list(range(0, len(p95_latency)*10, 10))
 
@@ -142,7 +182,7 @@ def plot_type_a(qps_p95_file, job_info_file, exp_idx, report_part):
 
     # Indicate the start time
     fig.add_annotation(
-        text=f"Experiment Start Time: {benchmark_start}",
+        text=f"Experiment Start Time: {benchmark_start_mark}",
         xref="paper", yref="paper",
         x=0, y=-0.2,
         showarrow=False,
@@ -152,13 +192,12 @@ def plot_type_a(qps_p95_file, job_info_file, exp_idx, report_part):
 
     # Add job annotations
     for _, row in job_info_df.iterrows():
-        rel_start = float(row["start"]) - timestamp_start
+        rel_start = (row["start"] - benchmark_start).total_seconds()
         job = row["job"]
-        duration = float(row["duration"])
 
         if job in job_label_y:
             y_label_pos = job_label_y[job]
-            rel_end = rel_start + duration
+            duration = (row["end"] - row["start"]).total_seconds()
             color = job_colors.get(job, "#CCCCCC")
 
             # Jobs start
@@ -212,13 +251,13 @@ def plot_type_a(qps_p95_file, job_info_file, exp_idx, report_part):
     fig.write_html(os.path.join(fig_dir, f"part_{report_part}_experiment_{exp_idx}_p95_latency_and_achieved_qps_30mins.html"))
 
 
-def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx, report_part):
+def plot_type_b(mcperf_file, job_file, exp_idx, report_part):
 
-    p95_latency, actual_qps, timestamp_start, timestamp_end = load_qps_p95_file(qps_p95_file)
-    job_info_df, _ = load_job_info_file(job_info_file)
-    memcache_cpu_core = load_memcache_cpu_core_file(memcache_cpu_core_file)
+    p95_latency, actual_qps, timestamp_start, timestamp_end = load_mcperf_file(mcperf_file)
+    job_info_df, total_makespan, memcache_cpu_core = load_job_file(job_file)
     benchmark_start = datetime.fromtimestamp(timestamp_start)
-    benchmark_start = benchmark_start.strftime('%Y-%m-%d %H:%M:%S')
+    benchmark_start_mark = benchmark_start.strftime('%Y-%m-%d %H:%M:%S')
+    timestamp_end = datetime.fromtimestamp(timestamp_end)
 
     # Time axis based on QPS data (10-second intervals)
     time_axis = list(range(0, len(actual_qps) * 10, 10))
@@ -229,7 +268,7 @@ def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx, re
     for memcache_core_timestamp, core_num in memcache_cpu_core.items():
         if memcache_core_timestamp > timestamp_end:
             break
-        memcache_core_timestamps.append(memcache_core_timestamp-timestamp_start)
+        memcache_core_timestamps.append((memcache_core_timestamp-benchmark_start).total_seconds())
         core_num_list.append(core_num)
 
     fig = go.Figure()
@@ -254,7 +293,7 @@ def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx, re
 
     # Indicate the start time
     fig.add_annotation(
-        text=f"Experiment Start Time: {benchmark_start}",
+        text=f"Experiment Start Time: {benchmark_start_mark}",
         xref="paper", yref="paper",
         x=0, y=-0.2,
         showarrow=False,
@@ -264,9 +303,9 @@ def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx, re
 
     # Add job annotations
     for _, row in job_info_df.iterrows():
-        rel_start = float(row["start"]) - timestamp_start
+        rel_start = (row["start"] - benchmark_start).total_seconds()
         job = row["job"]
-        duration = float(row["duration"])
+        duration = (row["end"] - row["start"]).total_seconds()
 
         if job in job_label_y:
             y_label_pos = job_label_y[job]
@@ -327,8 +366,9 @@ def plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, exp_idx, re
     fig.write_html(os.path.join(fig_dir, f"part_{report_part}_experiment_{exp_idx}_memcached_cpu_core_allocation_over_30mins.html"))
 
 
-
 def cal_job_mean_std_time(job_info_dfs, total_makespans):
+
+    print("total_makespans: ", total_makespans)
 
     df_all = pd.concat(job_info_dfs, ignore_index=True)
     df_all["duration"] = df_all["duration"].astype(float)
@@ -340,15 +380,16 @@ def cal_job_mean_std_time(job_info_dfs, total_makespans):
     return job_mean_std_time, makespan_mean, makespan_std
 
 
-def cal_slo_violation_ratio(qps_p95_file, job_info_file, idx):
+def cal_slo_violation_ratio(mcperf_file, job_info_file, idx):
 
-    p95_latency, actual_qps, timestamp_start, timestamp_end = load_qps_p95_file(qps_p95_file)
-    job_info_df, _ = load_job_info_file(job_info_file)
+    p95_latency, actual_qps, timestamp_start, timestamp_end = load_mcperf_file(mcperf_file)
+    job_info_df, total_makespan, memcache_cpu_core = load_job_file(job_info_file)
 
     # Calculate the job time period:
-    job_start = job_info_df["start"].astype(float).min()
-    job_info_df["end"] = job_info_df["start"].astype(float) + job_info_df["duration"].astype(float)
-    job_end = job_info_df["end"].max()
+    job_start = job_info_df["start"].min().timestamp()
+    job_end = job_info_df["end"].max().timestamp()
+    timestamp_start = (datetime.fromtimestamp(timestamp_start) + timedelta(hours=2)).timestamp()
+    timestamp_end = (datetime.fromtimestamp(timestamp_end) + timedelta(hours=2)).timestamp()
 
     # Find the common area with job batch and memcache
     start = max(job_start, timestamp_start)
@@ -372,23 +413,26 @@ if __name__ == "__main__":
     
     result_path_4_3 = "../result/log/4-3/"
     result_path_4_4 = "../result/log/4-3/"
-    qps_p95_files = ["qps_p95_run1.txt", "qps_p95_run2.txt", "qps_p95_run3.txt"]
-    job_info_files = ["job_info_run1.txt", "job_info_run2.txt", "job_info_run3.txt"]
+    mcperf_files = ["mcperf_1.txt", "mcperf_2.txt", "mcperf_3.txt"]
+    job_files = ["jobs_1.txt", "jobs_2.txt", "jobs_3.txt"]
     memcache_cpu_core_files = ["memcache_cpu_core_run1.txt", "memcache_cpu_core_run2.txt", "memcache_cpu_core_run3.txt"]
-    
+
     job_info_dfs = []
     total_makespans = []
 
     for idx in range(1, 4):
-        qps_p95_file = os.path.join(result_path_4_3, qps_p95_files[idx-1])
-        job_info_file = os.path.join(result_path_4_3, job_info_files[idx-1])
+        mcperf_file = os.path.join(result_path_4_3, mcperf_files[idx-1])
+        job_file = os.path.join(result_path_4_3, job_files[idx-1])
         memcache_cpu_core_file = os.path.join(result_path_4_3, memcache_cpu_core_files[idx-1])
 
-        plot_type_a(qps_p95_file, job_info_file, idx, "4_3")
-        plot_type_b(qps_p95_file, job_info_file, memcache_cpu_core_file, idx, "4_3")
-        cal_slo_violation_ratio(qps_p95_file, job_info_file, idx)
+        amplify_jobs_file(job_file, memcache_cpu_core_file)
 
-        job_info_df, total_makespan = load_job_info_file(job_info_file)
+        plot_type_a(mcperf_file, job_file, idx, "4_3")
+        plot_type_b(mcperf_file, job_file, idx, "4_3")
+
+        cal_slo_violation_ratio(mcperf_file, job_file, idx)
+
+        job_info_df, total_makespan, memcache_cpu_core = load_job_file(job_file)
         
         job_info_dfs.append(job_info_df)
         total_makespans.append(total_makespan)

@@ -7,7 +7,7 @@ cd memcache-perf-dynamic/ && \
 ./mcperf -s ${MEMCACHED_INT_IP} --loadonly && \
 ./mcperf -s ${MEMCACHED_INT_IP} -a ${AGENT_A_INT_IP} \
     --noload -T 8 -C 8 -D 4 -Q 1000 -c 8 -t 1800 \
-    --qps_interval 10 --qps_min 5000 --qps_max 180000
+    --qps_interval 10 --qps_min 5000 --qps_max 180000 --qps_seed 2333
 "
 
 echo "Connect to ${NAME_CLIENT_MEASURE}"

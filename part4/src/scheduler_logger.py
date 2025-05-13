@@ -61,4 +61,3 @@ class SchedulerLogger:
         self._log("end", Job.SCHEDULER)
         self.file.flush()
         self.file.close()
-

@@ -81,7 +81,7 @@ def load_mcperf_file(mcperf_file):
     for line in lines:
         if line.startswith("read"):
             parts = re.split(r"\s+", line.strip())
-            p95 = round(float(parts[-6]) / 1000, 1)
+            p95 = round(float(parts[-6]) / 1000, 5)
             qps = float(parts[-2])
             p95_latency.append(p95)
             actual_qps.append(qps)
@@ -141,11 +141,12 @@ def load_job_file(job_info_file):
 def plot_type_a(mcperf_file, job_file, exp_idx, report_part):
 
     p95_latency, actual_qps, timestamp_start, timestamp_end = load_mcperf_file(mcperf_file)
+    print("actual_qps: ", len(actual_qps))
     job_info_df, total_makespan, memcache_cpu_core = load_job_file(job_file)
     benchmark_start = datetime.fromtimestamp(timestamp_start)
     benchmark_start_mark = benchmark_start.strftime('%Y-%m-%d %H:%M:%S')
 
-    time_axis = list(range(0, len(p95_latency)*10, 10))
+    time_axis = list(range(0, len(p95_latency)*5, 5))
 
     fig = go.Figure()
 
@@ -260,7 +261,7 @@ def plot_type_b(mcperf_file, job_file, exp_idx, report_part):
     timestamp_end = datetime.fromtimestamp(timestamp_end)
 
     # Time axis based on QPS data (10-second intervals)
-    time_axis = list(range(0, len(actual_qps) * 10, 10))
+    time_axis = list(range(0, len(actual_qps) * 5, 5))
 
     memcache_core_timestamps = []
     core_num_list = []

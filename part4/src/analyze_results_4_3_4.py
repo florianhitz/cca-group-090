@@ -397,7 +397,7 @@ def cal_slo_violation_ratio(mcperf_file, job_info_file, idx):
 
     rel_start = start - timestamp_start
     rel_end = end - timestamp_start
-    time_axis = list(range(0, len(p95_latency) * 10, 10))
+    time_axis = list(range(0, len(p95_latency) * 5, 5))
 
     valid_indices = [i for i, t in enumerate(time_axis) if rel_start <= t <= rel_end]
     violations = sum(1 for i in valid_indices if p95_latency[i] > 0.8)
@@ -421,14 +421,14 @@ if __name__ == "__main__":
     total_makespans = []
 
     for idx in range(1, 4):
-        mcperf_file = os.path.join(result_path_4_3, mcperf_files[idx-1])
-        job_file = os.path.join(result_path_4_3, job_files[idx-1])
-        memcache_cpu_core_file = os.path.join(result_path_4_3, memcache_cpu_core_files[idx-1])
+        mcperf_file = os.path.join(result_path_4_4, mcperf_files[idx-1])
+        job_file = os.path.join(result_path_4_4, job_files[idx-1])
+        memcache_cpu_core_file = os.path.join(result_path_4_4, memcache_cpu_core_files[idx-1])
 
         amplify_jobs_file(job_file, memcache_cpu_core_file)
 
-        plot_type_a(mcperf_file, job_file, idx, "4_3")
-        plot_type_b(mcperf_file, job_file, idx, "4_3")
+        plot_type_a(mcperf_file, job_file, idx, "4_4")
+        plot_type_b(mcperf_file, job_file, idx, "4_4")
 
         cal_slo_violation_ratio(mcperf_file, job_file, idx)
 

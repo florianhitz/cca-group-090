@@ -49,7 +49,9 @@ fig, ax = plt.subplots()
 ax.plot(df['QPS'], df['p95']/1000, label='QPS', c='blue', marker='.')
 ax.set_xlabel('Achieved QPS')
 ax.set_ylabel('95th percentile Latency [ms]')
-ax.hlines(0.8, df['QPS'].iloc[0], df['QPS'].iloc[-1], colors='blue', linestyles='dashed')
+ax.hlines(0.8, 0, 225_000, colors='blue', linestyles='dashed', label='SLO')
+ax.set_xlim(0, 225_000) # heuristic
+ax.set_ylim(0, 1.7) # heuristic
 
 ax2 = ax.twinx()
 ax2.plot(df['QPS'], df['CPU'], label='CPU (mvg. avg.)', c='red', marker="v")
@@ -64,6 +66,8 @@ ax.legend(
     labels1 + labels2,
     loc='upper left'
 )
+
+fig.tight_layout()
 
 plt.title(f'QPS and CPU utilization Threads=2 Cores={CORES}')
 plt.savefig(f'../result/fig/part4-1-d-{CORES}.png')

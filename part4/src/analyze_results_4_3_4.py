@@ -146,7 +146,7 @@ def plot_type_a(mcperf_file, job_file, exp_idx, report_part):
     benchmark_start = datetime.fromtimestamp(timestamp_start)
     benchmark_start_mark = benchmark_start.strftime('%Y-%m-%d %H:%M:%S')
 
-    time_axis = list(range(0, len(p95_latency)*5, 5))
+    time_axis = list(range(0, len(p95_latency)*8, 8))
 
     fig = go.Figure()
 
@@ -261,7 +261,7 @@ def plot_type_b(mcperf_file, job_file, exp_idx, report_part):
     timestamp_end = datetime.fromtimestamp(timestamp_end)
 
     # Time axis based on QPS data (10-second intervals)
-    time_axis = list(range(0, len(actual_qps) * 5, 5))
+    time_axis = list(range(0, len(actual_qps) * 8, 8))
 
     memcache_core_timestamps = []
     core_num_list = []
@@ -398,7 +398,7 @@ def cal_slo_violation_ratio(mcperf_file, job_info_file, idx):
 
     rel_start = start - timestamp_start
     rel_end = end - timestamp_start
-    time_axis = list(range(0, len(p95_latency) * 5, 5))
+    time_axis = list(range(0, len(p95_latency) * 8, 8))
 
     valid_indices = [i for i, t in enumerate(time_axis) if rel_start <= t <= rel_end]
     violations = sum(1 for i in valid_indices if p95_latency[i] > 0.8)
